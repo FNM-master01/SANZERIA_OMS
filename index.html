@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="会員管理">
+<title>宅配会員管理システム</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif; font-size: 15px; background: #f5f5f5; color: #111; }
+  header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; }
+  header .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+  header h1 { font-size: 16px; font-weight: 600; }
+  header .sub { font-size: 11px; color: #888; margin-left: auto; }
+  .tab-bar { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; position: sticky; top: 57px; z-index: 99; }
+  .tab { flex: 1; padding: 12px 4px; font-size: 13px; border: none; background: none; color: #888; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.on { color: #111; border-bottom: 2px solid #111; font-weight: 600; }
+  .page { display: none; padding: 16px; }
+  .page.on { display: block; }
+  .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #e8e8e8; }
+  .lbl { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500; }
+  .fg { margin-bottom: 14px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  input, select, textarea { width: 100%; font-size: 15px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; color: #111; appearance: none; -webkit-appearance: none; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #555; background: #fff; }
+  textarea { resize: vertical; line-height: 1.5; }
+  .btn-primary { width: 100%; padding: 14px; font-size: 15px; font-weight: 600; background: #111; color: #fff; border: none; border-radius: 10px; cursor: pointer; margin-top: 4px; }
+  .btn-primary:active { opacity: 0.8; }
+  .btn-secondary { width: 100%; padding: 12px; font-size: 14px; background: #fff; color: #111; border: 1px solid #ccc; border-radius: 10px; cursor: pointer; margin-top: 8px; }
+  .btn-secondary:active { background: #f5f5f5; }
+  .btn-print { width: 100%; padding: 14px; font-size: 15px; font-weight: 600; background: #1a56db; color: #fff; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+  .scan-area { border: 2px dashed #ccc; border-radius: 12px; padding: 32px 16px; text-align: center; cursor: pointer; margin-bottom: 14px; background: #fff; }
+  .scan-area:active { background: #f5f5f5; }
+  .scan-icon { font-size: 40px; margin-bottom: 8px; }
+  .scan-label { font-size: 15px; color: #555; }
+  .scan-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  #cam_area { margin-bottom: 14px; }
+  #cam_video { width: 100%; border-radius: 10px; max-height: 280px; object-fit: cover; }
+  .member-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e8e8e8; cursor: pointer; }
+  .member-row:active { background: #f5f5f5; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #1e40af; flex-shrink: 0; }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name { font-size: 15px; font-weight: 600; }
+  .member-sub { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 99px; background: #dcfce7; color: #166534; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+  .badge.priority { background: #fef9c3; color: #854d0e; }
+  .badge.corp { background: #e0e7ff; color: #3730a3; }
+  .info-block { margin-bottom: 6px; }
+  .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f0f0f0; gap: 12px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-lbl { font-size: 13px; color: #888; flex-shrink: 0; }
+  .info-val { font-size: 13px; text-align: right; word-break: break-all; }
+  .member-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .member-header .avatar { width: 50px; height: 50px; font-size: 16px; }
+  .member-header-name { font-size: 18px; font-weight: 700; }
+  .member-header-id { font-size: 12px; color: #888; margin-top: 2px; }
+  .receipt-wrap { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #111; line-height: 1.8; max-width: 300px; margin: 0 auto; }
+  .r-center { text-align: center; }
+  .r-row { display: flex; justify-content: space-between; }
+  .r-bold { font-weight: bold; }
+  .r-dash { border: none; border-top: 1px dashed #bbb; margin: 6px 0; }
+  .qr-center { text-align: center; margin: 14px 0; }
+  .qr-center canvas { border: 1px solid #e0e0e0; border-radius: 8px; padding: 6px; }
+  .qr-label { font-size: 13px; color: #555; margin-top: 8px; }
+  .empty { text-align: center; padding: 40px 16px; color: #aaa; }
+  .empty-icon { font-size: 36px; margin-bottom: 8px; }
+  .empty-text { font-size: 14px; }
+  .search-bar { margin-bottom: 12px; }
+  .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .list-count { font-size: 13px; color: #888; }
+  .section-title { font-size: 13px; font-weight: 600; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 20px; border-radius: 99px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .divider { height: 1px; background: #f0f0f0; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="dot"></div>
+  <h1>宅配会員管理</h1>
+  <span class="sub">TM-m30III-H 対応</span>
+</header>
+
+<div class="tab-bar">
+  <button class="tab on" onclick="sw('reg',this)">新規登録</button>
+  <button class="tab" onclick="sw('scan',this)">スキャン</button>
+  <button class="tab" onclick="sw('list',this)">会員一覧</button>
+</div>
+
+<!-- 新規登録 -->
+<div id="reg" class="page on">
+  <p class="section-title">会員情報の入力</p>
+  <div class="card">
+    <div class="row2">
+      <div class="fg"><p class="lbl">姓</p><input id="r_sei" placeholder="山田" /></div>
+      <div class="fg"><p class="lbl">名</p><input id="r_mei" placeholder="花子" /></div>
+    </div>
+    <div class="fg"><p class="lbl">電話番号</p><input id="r_tel" type="tel" placeholder="06-XXXX-XXXX" /></div>
+    <div class="fg"><p class="lbl">郵便番号</p><input id="r_zip" placeholder="530-0001" /></div>
+    <div class="fg"><p class="lbl">住所</p><input id="r_addr" placeholder="大阪府大阪市北区梅田..." /></div>
+    <div class="fg"><p class="lbl">区分</p>
+      <select id="r_type"><option value="通常">通常</option><option value="優先">優先</option><option value="法人">法人</option></select>
+    </div>
+    <div class="fg" style="margin-bottom:0;"><p class="lbl">メモ・備考（置き配場所・注意事項など）</p>
+      <textarea id="r_memo" rows="3" placeholder="例：玄関前の青いボックスへ。呼び鈴2回鳴らす。"></textarea>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="register()">登録してQRコードを発行</button>
+
+  <div id="qr_result" style="display:none; margin-top:20px;">
+    <p class="section-title">QRコード発行完了</p>
+    <div class="card">
+      <div class="qr-center">
+        <div id="qr_canvas_wrap"></div>
+        <p class="qr-label" id="qr_id_label"></p>
+      </div>
+      <p style="font-size:12px;color:#888;text-align:center;margin-top:8px;">このQRをカード台紙に印刷して貼り付けてください</p>
+      <button class="btn-secondary" onclick="printQR()">QRコードを印刷する</button>
+      <button class="btn-secondary" onclick="resetForm()">続けて登録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- スキャン -->
+<div id="scan" class="page">
+  <div class="scan-area" onclick="startScan()" id="scan_trigger">
+    <div class="scan-icon">&#9638;</div>
+    <p class="scan-label">QRコードをスキャン</p>
+    <p class="scan-sub">タップしてカメラを起動</p>
+  </div>
+
+  <div id="cam_area" style="display:none;">
+    <video id="cam_video" autoplay playsinline></video>
+    <button class="btn-secondary" onclick="stopCam()" style="margin-top:8px;">カメラを閉じる</button>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <input id="scan_input" placeholder="会員番号を直接入力（例：MB-0001）" style="flex:1;font-size:14px;" onkeydown="if(event.key==='Enter')doSearch()" />
+    <button onclick="doSearch()" style="padding:10px 14px;font-size:13px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;white-space:nowrap;">検索</button>
+  </div>
+
+  <div id="scan_empty" class="empty">
+    <div class="empty-icon">&#9638;</div>
+    <p class="empty-text">QRをスキャンするか<br>会員番号を入力してください</p>
+  </div>
+
+  <div id="scan_result" style="display:none;">
+    <p class="section-title">会員情報</p>
+    <div class="card">
+      <div class="member-header">
+        <div class="avatar" id="sr_avatar"></div>
+        <div>
+          <p class="member-header-name" id="sr_name"></p>
+          <p class="member-header-id" id="sr_id_date"></p>
+        </div>
+        <span class="badge" id="sr_badge" style="margin-left:auto;"></span>
+      </div>
+      <div id="sr_info"></div>
+    </div>
+
+    <p class="section-title">印刷プレビュー（80mm幅）</p>
+    <div class="receipt-wrap" id="receipt_preview"></div>
+    <button class="btn-print" onclick="doPrint()">&#128438; TM-m30III-H で印刷</button>
+  </div>
+</div>
+
+<!-- 会員一覧 -->
+<div id="list" class="page">
+  <div class="list-header">
+    <span class="list-count" id="list_count">0名登録</span>
+  </div>
+  <div class="search-bar">
+    <input id="list_search" placeholder="名前・住所・会員番号で検索..." oninput="renderList()" />
+  </div>
+  <div id="list_body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+let db = [];
+let camStream = null;
+let scanLoop = null;
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem('delivery_members_v1');
+    if (raw) db = JSON.parse(raw);
+  } catch(e) { db = []; }
+}
+
+function saveDB() {
+  try { localStorage.setItem('delivery_members_v1', JSON.stringify(db)); } catch(e) {}
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function sw(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  el.classList.add('on');
+  if (id === 'list') renderList();
+  if (id !== 'scan') stopCam();
+}
+
+function genId() {
+  if (db.length === 0) return 'MB-0001';
+  const max = db.reduce((m, x) => {
+    const n = parseInt(x.id.replace('MB-', ''));
+    return Math.max(m, n);
+  }, 0);
+  return 'MB-' + String(max + 1).padStart(4, '0');
+}
+
+function register() {
+  const sei = document.getElementById('r_sei').value.trim();
+  const mei = document.getElementById('r_mei').value.trim();
+  if (!sei || !mei) { alert('姓と名を入力してください'); return; }
+  const tel = document.getElementById('r_tel').value.trim();
+  if (!tel) { alert('電話番号を入力してください'); return; }
+  const member = {
+    id: genId(),
+    name: sei + ' ' + mei,
+    tel: tel,
+    zip: document.getElementById('r_zip').value.trim(),
+    addr: document.getElementById('r_addr').value.trim(),
+    type: document.getElementById('r_type').value,
+    memo: document.getElementById('r_memo').value.trim(),
+    date: new Date().toLocaleDateString('ja-JP')
+  };
+  db.push(member);
+  saveDB();
+  showQR(member);
+  showToast('会員登録が完了しました');
+}
+
+function showQR(m) {
+  document.getElementById('qr_result').style.display = 'block';
+  document.getElementById('qr_id_label').textContent = '会員番号：' + m.id + '　' + m.name + ' 様';
+  const wrap = document.getElementById('qr_canvas_wrap');
+  wrap.innerHTML = '';
+  new QRCode(wrap, {
+    text: m.id,
+    width: 200, height: 200,
+    colorDark: '#000000', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById('qr_result').scrollIntoView({ behavior: 'smooth' });
+}
+
+function printQR() {
+  const wrap = document.getElementById('qr_canvas_wrap');
+  const canvas = wrap.querySelector('canvas');
+  const img = wrap.querySelector('img');
+  const src = canvas ? canvas.toDataURL() : (img ? img.src : '');
+  const label = document.getElementById('qr_id_label').textContent;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>会員QRコード</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 30px; }
+    .card { display: inline-block; border: 2px solid #333; border-radius: 12px; padding: 20px 30px; }
+    h2 { font-size: 14px; margin-bottom: 12px; color: #333; }
+    img { width: 200px; height: 200px; display: block; margin: 0 auto; }
+    p { font-size: 12px; color: #666; margin-top: 10px; }
+    @media print { body { padding: 0; } }
+  </style></head>
+  <body>
+    <div class="card">
+      <h2>${label}</h2>
+      <img src="${src}" />
+      <p>宅配会員カード</p>
+    </div>
+    <script>window.onload=function(){ window.print(); }<\/script>
+  </body></html>`);
+}
+
+function resetForm() {
+  ['r_sei','r_mei','r_tel','r_zip','r_addr','r_memo'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('r_type').value = '通常';
+  document.getElementById('qr_result').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function doSearch() {
+  const q = document.getElementById('scan_input').value.trim().toUpperCase();
+  if (!q) return;
+  const m = db.find(x => x.id === q);
+  if (m) showMember(m);
+  else { alert('会員番号「' + q + '」は見つかりませんでした'); }
+}
+
+function showMember(m) {
+  document.getElementById('scan_empty').style.display = 'none';
+  document.getElementById('scan_result').style.display = 'block';
+  const initials = m.name.replace(' ', '').substring(0, 2);
+  document.getElementById('sr_avatar').textContent = initials;
+  document.getElementById('sr_name').textContent = m.name;
+  document.getElementById('sr_id_date').textContent = '会員番号：' + m.id + '　登録日：' + m.date;
+  const badge = document.getElementById('sr_badge');
+  badge.textContent = m.type;
+  badge.className = 'badge' + (m.type === '優先' ? ' priority' : m.type === '法人' ? ' corp' : '');
+  document.getElementById('sr_info').innerHTML = [
+    ['電話番号', m.tel],
+    ['郵便番号', m.zip || '—'],
+    ['住所', m.addr || '—'],
+    ['メモ・備考', m.memo || '—']
+  ].map(([l, v]) => `<div class="info-row"><span class="info-lbl">${l}</span><span class="info-val">${v}</span></div>`).join('');
+  const now = new Date();
+  const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('receipt_preview').innerHTML = `
+    <div class="r-center r-bold" style="font-size:13px;">◆ 宅配伝票 ◆</div>
+    <div class="r-center" style="font-size:10px; margin-bottom:4px;">${dt}</div>
+    <hr class="r-dash">
+    <div class="r-row"><span>会員番号</span><span>${m.id}</span></div>
+    <div class="r-bold" style="font-size:14px;">${m.name} 様</div>
+    <hr class="r-dash">
+    <div>【TEL】${m.tel}</div>
+    ${m.zip ? '<div>【〒】' + m.zip + '</div>' : ''}
+    <div>【住所】${m.addr || '—'}</div>
+    <hr class="r-dash">
+    <div>【配達メモ】</div>
+    <div>${m.memo || '（なし）'}</div>
+    <hr class="r-dash">
+    <div class="r-center" style="font-size:10px;">いつもありがとうございます</div>`;
+  document.getElementById('scan_result').scrollIntoView({ behavior: 'smooth' });
+}
+
+function doPrint() {
+  const content = document.getElementById('receipt_preview').innerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>宅配伝票</title>
+  <style>
+    body { font-family: 'Courier New', monospace; font-size: 13px; width: 72mm; margin: 0 auto; padding: 4mm; color: #000; }
+    .r-center { text-align: center; }
+    .r-row { display: flex; justify-content: space-between; }
+    .r-bold { font-weight: bold; }
+    .r-dash { border: none; border-top: 1px dashed #000; margin: 4px 0; }
+    @media print { body { width: 72mm; } }
+  </style></head>
+  <body>${content}
+  <script>window.onload=function(){ window.print(); }<\/script>
+  </body></html>`);
+}
+
+async function startScan() {
+  document.getElementById('cam_area').style.display = 'block';
+  document.getElementById('scan_trigger').style.display = 'none';
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.getElementById('cam_video');
+    video.srcObject = camStream;
+    await video.play();
+    scanLoop = setInterval(() => scanFrame(video), 250);
+  } catch(e) {
+    alert('カメラへのアクセスが許可されていません。\nブラウザの設定でカメラを許可してから、もう一度お試しください。\n\n会員番号を直接入力して検索することもできます。');
+    stopCam();
+  }
+}
+
+function scanFrame(video) {
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  const cv = document.createElement('canvas');
+  cv.width = video.videoWidth;
+  cv.height = video.videoHeight;
+  cv.getContext('2d').drawImage(video, 0, 0);
+  const img = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height);
+  const code = jsQR(img.data, img.width, img.height);
+  if (code) {
+    const found = db.find(x => x.id === code.data.toUpperCase());
+    if (found) {
+      stopCam();
+      document.getElementById('scan_input').value = found.id;
+      showMember(found);
+      showToast('会員情報を読み取りました');
+    }
+  }
+}
+
+function stopCam() {
+  if (scanLoop) { clearInterval(scanLoop); scanLoop = null; }
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  document.getElementById('cam_area').style.display = 'none';
+  document.getElementById('scan_trigger').style.display = 'block';
+}
+
+function renderList() {
+  const q = document.getElementById('list_search').value;
+  const filtered = db.filter(m =>
+    !q || m.name.includes(q) || (m.addr && m.addr.includes(q)) || m.id.includes(q) || m.tel.includes(q)
+  );
+  document.getElementById('list_count').textContent = db.length + '名登録';
+  const el = document.getElementById('list_body');
+  if (!db.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128101;</div><p class="empty-text">まだ会員が登録されていません<br>「新規登録」から追加してください</p></div>';
+    return;
+  }
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><p class="empty-text">「' + q + '」に一致する会員は見つかりませんでした</p></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(m => `
+    <div class="member-row" onclick="goScan('${m.id}')">
+      <div class="avatar">${m.name.replace(' ', '').substring(0, 2)}</div>
+      <div class="member-info">
+        <p class="member-name">${m.name}</p>
+        <p class="member-sub">${m.id} · ${m.tel}</p>
+      </div>
+      <span class="badge${m.type === '優先' ? ' priority' : m.type === '法人' ? ' corp' : ''}">${m.type}</span>
+    </div>`).join('');
+}
+
+function goScan(id) {
+  document.querySelectorAll('.tab')[1].click();
+  document.getElementById('scan_input').value = id;
+  doSearch();
+}
+
+loadDB();
+</script>
+</body>
+</html>

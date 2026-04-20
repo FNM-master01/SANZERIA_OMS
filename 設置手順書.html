@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>設置手順書 — 宅配会員管理システム</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 720px; margin: 0 auto; padding: 24px 20px; color: #222; line-height: 1.7; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: #888; font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 17px; font-weight: 700; margin: 32px 0 12px; padding-left: 12px; border-left: 4px solid #111; }
+  .step { background: #f9f9f9; border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; border: 1px solid #e8e8e8; }
+  .step-num { display: inline-block; background: #111; color: #fff; font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; margin-right: 8px; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; margin-bottom: 8px; }
+  .step-body { font-size: 14px; color: #444; padding-left: 32px; }
+  .step-body li { margin-bottom: 6px; }
+  .step-body ul { padding-left: 18px; }
+  .note { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #555; margin: 8px 0 0; }
+  .success { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #2e7d32; margin-top: 16px; font-weight: 600; }
+  .url-example { background: #1a1a1a; color: #7dd3fc; font-family: monospace; font-size: 13px; padding: 10px 14px; border-radius: 6px; margin: 8px 0; word-break: break-all; }
+  a { color: #1a56db; }
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 6px 0; font-size: 14px; }
+  .checklist li::before { content: "☐ "; font-size: 16px; }
+  hr { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+  .warn { background: #fff3f3; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #b91c1c; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>設置手順書</h1>
+<p class="subtitle">宅配会員管理システム — スマホで使えるようにする方法</p>
+
+<p style="font-size:14px;">この手順に沿って進めると、<strong>約15〜20分</strong>でスマホのホーム画面からアプリのように使えるようになります。費用は<strong>完全無料</strong>です。</p>
+
+<h2>STEP 1 ── GitHubアカウントを作る</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>GitHubを開く</div>
+  <div class="step-body">
+    スマホまたはPCのブラウザで <a href="https://github.com" target="_blank">https://github.com</a> を開きます。
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>「Sign up」で無料登録</div>
+  <div class="step-body">
+    <ul>
+      <li>右上の「Sign up」をタップ</li>
+      <li>メールアドレス・パスワード・ユーザー名を設定</li>
+      <li>無料プラン（Free）を選択して完了</li>
+    </ul>
+    <div class="note">※ ユーザー名はURLの一部になります。半角英数字で設定してください（例：tanaka-delivery）</div>
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 2 ── リポジトリ（保存場所）を作る</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>新しいリポジトリを作成</div>
+  <div class="step-body">
+    <ul>
+      <li>ログイン後、右上の「＋」ボタン → 「New repository」をタップ</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>設定を入力</div>
+  <div class="step-body">
+    <ul>
+      <li><strong>Repository name</strong>（名前）：<code>member</code> と入力</li>
+      <li><strong>Public</strong>（公開）を選択（無料で使うために必要）</li>
+      <li>「<strong>Add a README file</strong>」にチェックを入れる</li>
+      <li>「<strong>Create repository</strong>」ボタンを押す</li>
+    </ul>
+    <div class="note">※ Publicにしても、会員データはスマホ本体に保存されるため、インターネット上には漏れません。</div>
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 3 ── HTMLファイルをアップロード</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>ファイルをアップロード</div>
+  <div class="step-body">
+    <ul>
+      <li>作成したリポジトリのページを開く</li>
+      <li>「<strong>Add file</strong>」→「<strong>Upload files</strong>」をタップ</li>
+      <li>ダウンロードした <strong>member-system.html</strong> を選んでアップロード</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>ファイル名を変更（重要）</div>
+  <div class="step-body">
+    <ul>
+      <li>アップロード後、ファイルをクリック → 右上の「✏️（鉛筆アイコン）」をクリック</li>
+      <li>ファイル名を <code>member-system.html</code> から <code>index.html</code> に変更</li>
+      <li>下にある「<strong>Commit changes</strong>」ボタンを押して保存</li>
+    </ul>
+    <div class="note">※ 「index.html」にするとURLがシンプルになります。</div>
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 4 ── GitHub Pages を有効にする</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>Settings を開く</div>
+  <div class="step-body">
+    リポジトリのページ上部の「<strong>Settings</strong>」タブをクリック
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>Pages の設定</div>
+  <div class="step-body">
+    <ul>
+      <li>左メニューの「<strong>Pages</strong>」をクリック</li>
+      <li>「<strong>Branch</strong>」を「<code>main</code>」に変更</li>
+      <li>「<strong>Save</strong>」ボタンを押す</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">3</span>URLが発行される（1〜2分待つ）</div>
+  <div class="step-body">
+    数分後にページを更新すると、以下のようなURLが表示されます：
+    <div class="url-example">https://あなたのユーザー名.github.io/member/</div>
+    <div class="success">✓ このURLがあなたの会員管理システムのアドレスです！</div>
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 5 ── スマホのホーム画面に追加する</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">iPhone の場合</span></div>
+  <div class="step-body">
+    <ul>
+      <li>Safariで発行されたURLを開く</li>
+      <li>下の「共有」ボタン（四角に上矢印）をタップ</li>
+      <li>「ホーム画面に追加」をタップ → 「追加」</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">Android の場合</span></div>
+  <div class="step-body">
+    <ul>
+      <li>Chromeで発行されたURLを開く</li>
+      <li>右上の「⋮（メニュー）」をタップ</li>
+      <li>「ホーム画面に追加」をタップ</li>
+    </ul>
+  </div>
+</div>
+
+<div class="success">✓ アプリアイコンがホーム画面に表示され、タップするだけで起動できます！</div>
+
+<hr>
+
+<h2>よくある質問</h2>
+
+<div class="step">
+  <div class="step-title">会員データはどこに保存される？</div>
+  <div class="step-body">
+    スマホのブラウザ内（ローカルストレージ）に保存されます。インターネット上には送信されないため安全です。ただし、同じスマホ・同じブラウザでのみデータが共有されます。
+    <div class="warn">※ ブラウザのキャッシュを全消去するとデータも消えます。定期的にバックアップをお勧めします（将来的にCSVエクスポート機能を追加できます）。</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title">複数のスマホで共有したい場合は？</div>
+  <div class="step-body">
+    現在のシステムは各端末独立です。複数端末でデータを共有するには、データベースサーバー（Supabase など無料サービス）との連携が必要です。必要であればご相談ください。
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title">印刷がうまくできない場合は？</div>
+  <div class="step-body">
+    TM-m30III-H を同じWiFiネットワークに接続し、プリンターのIPアドレスを設定に追加することで、ワンタップで自動印刷できるようになります。詳細はご相談ください。
+  </div>
+</div>
+
+<hr>
+<p style="font-size:13px;color:#aaa;text-align:center;">宅配会員管理システム 設置手順書 — 作成日：2026年4月</p>
+
+</body>
+</html>

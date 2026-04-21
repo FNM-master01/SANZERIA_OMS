@@ -673,7 +673,27 @@ function parseCSVLine(line) {
   return result;
 }
 
-loadDB();
+async function init() {
+  loadDB();
+  // 起動時に自動でスプレッドシートから最新データを取得
+  if (apiUrl) {
+    showToast('最新データを取得中...');
+    try {
+      const r = await fetch(apiUrl + '?action=getAll');
+      const data = await r.json();
+      if (data.success) {
+        db = data.members;
+        saveDB();
+        showToast('✅ 最新データを読み込みました（' + db.length + '件）');
+      }
+    } catch(e) {
+      // オフライン時はローカルデータをそのまま使用
+      showToast('📱 オフライン：端末内データを使用中');
+    }
+  }
+}
+
+init();
 </script>
 </body>
 </html>

@@ -74,20 +74,41 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 20px; border-radius: 99px; font-size: 13px; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
   .divider { height: 1px; background: #f0f0f0; margin: 12px 0; }
+  /* CSV ボタン */
+  .btn-csv-export { padding: 9px 16px; font-size: 13px; font-weight: 600; background: #16a34a; color: #fff; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+  .btn-csv-export:active { opacity: 0.8; }
+  .btn-csv-import { padding: 9px 16px; font-size: 13px; font-weight: 600; background: #fff; color: #111; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+  .btn-csv-import:active { background: #f5f5f5; }
+  .csv-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+  /* PC テーブル表示 */
+  @media (min-width: 700px) {
+    .page { max-width: 960px; margin: 0 auto; padding: 24px; }
+    .pc-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #e8e8e8; font-size: 14px; }
+    .pc-table th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; color: #555; border-bottom: 1px solid #e0e0e0; }
+    .pc-table td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .pc-table tr:last-child td { border-bottom: none; }
+    .pc-table tr:hover td { background: #fafafa; cursor: pointer; }
+    .mobile-list { display: none; }
+  }
+  @media (max-width: 699px) {
+    .pc-table { display: none; }
+    .mobile-list { display: block; }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="dot"></div>
+  <div class="dot" id="sync_dot"></div>
   <h1>宅配会員管理</h1>
-  <span class="sub">TM-m30III-H 対応</span>
+  <span class="sub" id="sync_status" style="cursor:pointer;" onclick="sw('settings',document.getElementById('tab_settings'))">⚙️ 設定</span>
 </header>
 
 <div class="tab-bar">
   <button class="tab on" onclick="sw('reg',this)">新規登録</button>
   <button class="tab" onclick="sw('scan',this)">スキャン</button>
   <button class="tab" onclick="sw('list',this)">会員一覧</button>
+  <button class="tab" id="tab_settings" onclick="sw('settings',this)">⚙️</button>
 </div>
 
 <!-- 新規登録 -->
@@ -169,13 +190,52 @@
 
 <!-- 会員一覧 -->
 <div id="list" class="page">
-  <div class="list-header">
-    <span class="list-count" id="list_count">0名登録</span>
+  <div class="csv-bar">
+    <span class="list-count" id="list_count" style="flex:1;">0名登録</span>
+    <button class="btn-csv-export" onclick="exportCSV()">📥 CSVエクスポート</button>
+    <label class="btn-csv-import">📤 CSVインポート<input type="file" accept=".csv" style="display:none;" onchange="importCSV(event)" /></label>
   </div>
   <div class="search-bar">
-    <input id="list_search" placeholder="名前・住所・会員番号で検索..." oninput="renderList()" />
+    <input id="list_search" placeholder="名前・住所・会員番号・電話番号で検索..." oninput="renderList()" />
   </div>
-  <div id="list_body"></div>
+  <!-- PC: テーブル表示 -->
+  <div style="overflow-x:auto;">
+    <table class="pc-table" id="pc_table">
+      <thead>
+        <tr>
+          <th>会員番号</th><th>氏名</th><th>電話番号</th><th>郵便番号</th><th>住所</th><th>区分</th><th>メモ</th><th>登録日</th>
+        </tr>
+      </thead>
+      <tbody id="pc_table_body"></tbody>
+    </table>
+  </div>
+  <!-- スマホ: カード表示 -->
+  <div class="mobile-list" id="list_body"></div>
+</div>
+
+<!-- 設定 -->
+<div id="settings" class="page">
+  <p class="section-title">Google スプレッドシート連携</p>
+  <div class="card">
+    <div class="fg">
+      <p class="lbl">Apps Script の URL</p>
+      <input id="api_url" placeholder="https://script.google.com/macros/s/..." style="font-size:13px;" />
+      <p style="font-size:11px;color:#aaa;margin-top:6px;">設定手順書を参考にURLを貼り付けてください</p>
+    </div>
+    <button class="btn-primary" onclick="saveApiUrl()">URLを保存して接続テスト</button>
+    <div id="api_test_result" style="margin-top:10px;font-size:13px;display:none;"></div>
+  </div>
+
+  <div class="card" style="margin-top:8px;">
+    <p style="font-size:14px;font-weight:600;margin-bottom:10px;">同期操作</p>
+    <button class="btn-secondary" onclick="syncFromSheet()" style="margin-top:0;">☁️ スプレッドシートから読み込む</button>
+    <button class="btn-secondary" onclick="syncToSheet()">📤 スプレッドシートへ書き出す</button>
+  </div>
+
+  <div class="card" style="margin-top:8px;border-color:#fca5a5;">
+    <p style="font-size:13px;font-weight:600;color:#b91c1c;margin-bottom:8px;">⚠️ 危険な操作</p>
+    <button onclick="clearLocalData()" style="width:100%;padding:10px;font-size:13px;background:#fff;color:#b91c1c;border:1px solid #fca5a5;border-radius:8px;cursor:pointer;">端末内のデータをすべて削除</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -186,16 +246,99 @@
 let db = [];
 let camStream = null;
 let scanLoop = null;
+let apiUrl = '';
 
 function loadDB() {
   try {
     const raw = localStorage.getItem('delivery_members_v1');
     if (raw) db = JSON.parse(raw);
   } catch(e) { db = []; }
+  apiUrl = localStorage.getItem('gas_api_url') || '';
+  if (apiUrl) document.getElementById('api_url').value = apiUrl;
+  updateSyncDot();
 }
 
 function saveDB() {
   try { localStorage.setItem('delivery_members_v1', JSON.stringify(db)); } catch(e) {}
+}
+
+function updateSyncDot() {
+  const dot = document.getElementById('sync_dot');
+  const status = document.getElementById('sync_status');
+  if (apiUrl) {
+    dot.style.background = '#22c55e';
+    status.textContent = '⚙️ 設定';
+  } else {
+    dot.style.background = '#f59e0b';
+    status.textContent = '⚙️ 未接続';
+  }
+}
+
+function saveApiUrl() {
+  const url = document.getElementById('api_url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    alert('正しいApps Script URLを入力してください'); return;
+  }
+  apiUrl = url;
+  localStorage.setItem('gas_api_url', url);
+  updateSyncDot();
+  testConnection();
+}
+
+async function testConnection() {
+  const res = document.getElementById('api_test_result');
+  res.style.display = 'block';
+  res.style.color = '#888';
+  res.textContent = '接続テスト中...';
+  try {
+    const r = await fetch(apiUrl + '?action=getAll');
+    const data = await r.json();
+    if (data.success) {
+      res.style.color = '#16a34a';
+      res.textContent = '✅ 接続成功！スプレッドシートに ' + data.members.length + '件のデータがあります';
+    } else {
+      res.style.color = '#dc2626';
+      res.textContent = '❌ エラー: ' + (data.error || '不明なエラー');
+    }
+  } catch(e) {
+    res.style.color = '#dc2626';
+    res.textContent = '❌ 接続失敗。URLを確認してください';
+  }
+}
+
+async function syncFromSheet() {
+  if (!apiUrl) { alert('先に設定タブでApps Script URLを設定してください'); return; }
+  showToast('スプレッドシートから読み込み中...');
+  try {
+    const r = await fetch(apiUrl + '?action=getAll');
+    const data = await r.json();
+    if (data.success) {
+      db = data.members;
+      saveDB();
+      renderList();
+      showToast('✅ ' + db.length + '件を読み込みました');
+    } else { alert('読み込みエラー: ' + data.error); }
+  } catch(e) { alert('通信エラーが発生しました'); }
+}
+
+async function syncToSheet() {
+  if (!apiUrl) { alert('先に設定タブでApps Script URLを設定してください'); return; }
+  if (!db.length) { alert('送信するデータがありません'); return; }
+  showToast('スプレッドシートへ書き出し中...');
+  try {
+    const r = await fetch(apiUrl + '?action=save&data=' + encodeURIComponent(JSON.stringify(db)));
+    const data = await r.json();
+    if (data.success) { showToast('✅ ' + data.count + '件を書き出しました'); }
+    else { alert('書き出しエラー: ' + data.error); }
+  } catch(e) { alert('通信エラーが発生しました'); }
+}
+
+function clearLocalData() {
+  if (!confirm('端末内のデータをすべて削除します。\nスプレッドシートのデータは残ります。\n本当に削除しますか？')) return;
+  db = [];
+  saveDB();
+  renderList();
+  showToast('端末内データを削除しました');
 }
 
 function showToast(msg) {
@@ -241,6 +384,11 @@ function register() {
   };
   db.push(member);
   saveDB();
+  // スプレッドシートにも追加
+  if (apiUrl) {
+    fetch(apiUrl + '?action=add&data=' + encodeURIComponent(JSON.stringify(member)))
+      .catch(() => {});
+  }
   showQR(member);
   showToast('会員登録が完了しました');
 }
@@ -402,6 +550,28 @@ function renderList() {
     !q || m.name.includes(q) || (m.addr && m.addr.includes(q)) || m.id.includes(q) || m.tel.includes(q)
   );
   document.getElementById('list_count').textContent = db.length + '名登録';
+
+  // PC テーブル
+  const tbody = document.getElementById('pc_table_body');
+  if (tbody) {
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:32px;">該当する会員が見つかりませんでした</td></tr>`;
+    } else {
+      tbody.innerHTML = filtered.map(m => `
+        <tr onclick="goScan('${m.id}')">
+          <td><span style="font-family:monospace;font-size:13px;">${m.id}</span></td>
+          <td><strong>${m.name}</strong></td>
+          <td>${m.tel}</td>
+          <td>${m.zip || '—'}</td>
+          <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.addr || '—'}</td>
+          <td><span class="badge${m.type==='優先'?' priority':m.type==='法人'?' corp':''}">${m.type}</span></td>
+          <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#888;">${m.memo || '—'}</td>
+          <td style="color:#aaa;font-size:12px;">${m.date}</td>
+        </tr>`).join('');
+    }
+  }
+
+  // スマホ カード
   const el = document.getElementById('list_body');
   if (!db.length) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">&#128101;</div><p class="empty-text">まだ会員が登録されていません<br>「新規登録」から追加してください</p></div>';
@@ -426,6 +596,78 @@ function goScan(id) {
   document.querySelectorAll('.tab')[1].click();
   document.getElementById('scan_input').value = id;
   doSearch();
+}
+
+// CSV エクスポート
+function exportCSV() {
+  if (!db.length) { alert('エクスポートできる会員データがありません'); return; }
+  const header = ['会員番号', '氏名', '電話番号', '郵便番号', '住所', '区分', 'メモ', '登録日'];
+  const rows = db.map(m => [m.id, m.name, m.tel, m.zip||'', m.addr||'', m.type, m.memo||'', m.date]
+    .map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
+  const csv = '\uFEFF' + [header.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+  a.href = url; a.download = '会員一覧_' + dateStr + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSVをダウンロードしました（' + db.length + '件）');
+}
+
+// CSV インポート
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const text = e.target.result.replace(/^\uFEFF/, '');
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) { alert('データが見つかりません'); return; }
+      const imported = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        if (cols.length < 6) continue;
+        const id = cols[0];
+        if (!id.match(/^MB-\d+$/)) continue;
+        imported.push({
+          id: id, name: cols[1], tel: cols[2], zip: cols[3]||'',
+          addr: cols[4]||'', type: cols[5]||'通常', memo: cols[6]||'', date: cols[7]||new Date().toLocaleDateString('ja-JP')
+        });
+      }
+      if (!imported.length) { alert('有効なデータが見つかりませんでした\nCSVの形式を確認してください'); return; }
+      const msg = `${imported.length}件のデータをインポートします。\n\n【上書き】既存データを全て置き換える\n【追加】既存データに追記する`;
+      const choice = confirm(msg + '\n\nOK＝上書き　キャンセル＝追加');
+      if (choice) {
+        db = imported;
+      } else {
+        imported.forEach(imp => {
+          const idx = db.findIndex(x => x.id === imp.id);
+          if (idx >= 0) db[idx] = imp; else db.push(imp);
+        });
+      }
+      saveDB();
+      renderList();
+      showToast(imported.length + '件をインポートしました');
+    } catch(err) { alert('CSVの読み込みに失敗しました\n' + err.message); }
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+function parseCSVLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else { inQ = !inQ; }
+    } else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur);
+  return result;
 }
 
 loadDB();

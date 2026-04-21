@@ -248,12 +248,15 @@ let camStream = null;
 let scanLoop = null;
 let apiUrl = '';
 
+// ★ Apps Script URL（直接埋め込み）
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxxXENHRphvCjyhSTW0fjGDi6zgm6pbhP6-h2d9qe9K1tQhhL2Blziaow-JvgMAsEPX/exec';
+
 function loadDB() {
   try {
     const raw = localStorage.getItem('delivery_members_v1');
     if (raw) db = JSON.parse(raw);
   } catch(e) { db = []; }
-  apiUrl = localStorage.getItem('gas_api_url') || '';
+  apiUrl = localStorage.getItem('gas_api_url') || DEFAULT_API_URL;
   if (apiUrl) document.getElementById('api_url').value = apiUrl;
   updateSyncDot();
 }

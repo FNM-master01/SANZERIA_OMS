@@ -179,6 +179,17 @@
         <span class="badge" id="sr_badge" style="margin-left:auto;"></span>
       </div>
       <div id="sr_info"></div>
+      <button class="btn-secondary" style="margin-top:12px;" onclick="reissueQR()">🔲 QRコードを再発行</button>
+    </div>
+
+    <!-- QR再発行パネル -->
+    <div id="reissue_qr_panel" style="display:none;">
+      <div class="card" style="margin-top:0;">
+        <p style="font-weight:600;text-align:center;margin-bottom:8px;">QRコード再発行</p>
+        <div class="qr-center"><div id="reissue_qr_wrap"></div></div>
+        <p style="font-size:11px;color:#888;text-align:center;margin-top:6px;" id="reissue_qr_label"></p>
+        <button class="btn-secondary" onclick="printReissueQR()">QRコードを印刷する</button>
+      </div>
     </div>
 
     <p class="section-title">印刷プレビュー（80mm幅）</p>
@@ -451,6 +462,8 @@ function doSearch() {
 }
 
 function showMember(m) {
+  currentMember = m;
+  document.getElementById('reissue_qr_panel').style.display = 'none';
   document.getElementById('scan_empty').style.display = 'none';
   document.getElementById('scan_result').style.display = 'block';
   const initials = m.name.replace(' ', '').substring(0, 2);
@@ -582,13 +595,14 @@ function renderList() {
     return;
   }
   el.innerHTML = filtered.map(m => `
-    <div class="member-row" onclick="goScan('${m.id}')">
-      <div class="avatar">${m.name.replace(' ', '').substring(0, 2)}</div>
-      <div class="member-info">
+    <div class="member-row">
+      <div class="avatar" onclick="goScan('${m.id}')">${m.name.replace(' ', '').substring(0, 2)}</div>
+      <div class="member-info" onclick="goScan('${m.id}')">
         <p class="member-name">${m.name}</p>
         <p class="member-sub">${m.id} · ${m.tel}</p>
       </div>
       <span class="badge${m.type === '優先' ? ' priority' : m.type === '法人' ? ' corp' : ''}">${m.type}</span>
+      <button onclick="goScanAndQR('${m.id}')" style="padding:6px 10px;font-size:12px;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;margin-left:6px;flex-shrink:0;">🔲 QR</button>
     </div>`).join('');
 }
 
@@ -596,6 +610,57 @@ function goScan(id) {
   document.querySelectorAll('.tab')[1].click();
   document.getElementById('scan_input').value = id;
   doSearch();
+}
+
+function goScanAndQR(id) {
+  document.querySelectorAll('.tab')[1].click();
+  document.getElementById('scan_input').value = id;
+  doSearch();
+  setTimeout(() => reissueQR(), 300);
+}
+// QR再発行
+let currentMember = null;
+function reissueQR() {
+  if (!currentMember) return;
+  const panel = document.getElementById('reissue_qr_panel');
+  panel.style.display = 'block';
+  document.getElementById('reissue_qr_label').textContent = '会員番号：' + currentMember.id + '　' + currentMember.name + ' 様';
+  const wrap = document.getElementById('reissue_qr_wrap');
+  wrap.innerHTML = '';
+  new QRCode(wrap, {
+    text: currentMember.id,
+    width: 200, height: 200,
+    colorDark: '#000000', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  panel.scrollIntoView({ behavior: 'smooth' });
+  showToast('QRコードを再発行しました');
+}
+
+function printReissueQR() {
+  const wrap = document.getElementById('reissue_qr_wrap');
+  const canvas = wrap.querySelector('canvas');
+  const img = wrap.querySelector('img');
+  const src = canvas ? canvas.toDataURL() : (img ? img.src : '');
+  const label = document.getElementById('reissue_qr_label').textContent;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>会員QRコード</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 30px; }
+    .card { display: inline-block; border: 2px solid #333; border-radius: 12px; padding: 20px 30px; }
+    h2 { font-size: 14px; margin-bottom: 12px; color: #333; }
+    img { width: 200px; height: 200px; display: block; margin: 0 auto; }
+    p { font-size: 12px; color: #666; margin-top: 10px; }
+    @media print { body { padding: 0; } }
+  </style></head>
+  <body>
+    <div class="card">
+      <h2>${label}</h2>
+      <img src="${src}" />
+      <p>宅配会員カード</p>
+    </div>
+    <script>window.onload=function(){ window.print(); }<\/script>
+  </body></html>`);
 }
 
 // CSV エクスポート

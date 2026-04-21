@@ -108,7 +108,6 @@
   <button class="tab on" onclick="sw('reg',this)">新規登録</button>
   <button class="tab" onclick="sw('scan',this)">スキャン</button>
   <button class="tab" onclick="sw('list',this)">会員一覧</button>
-  <button class="tab" id="tab_settings" onclick="sw('settings',this)">⚙️</button>
 </div>
 
 <!-- 新規登録 -->
@@ -190,10 +189,8 @@
 
 <!-- 会員一覧 -->
 <div id="list" class="page">
-  <div class="csv-bar">
-    <span class="list-count" id="list_count" style="flex:1;">0名登録</span>
-    <button class="btn-csv-export" onclick="exportCSV()">📥 CSVエクスポート</button>
-    <label class="btn-csv-import">📤 CSVインポート<input type="file" accept=".csv" style="display:none;" onchange="importCSV(event)" /></label>
+  <div style="margin-bottom:12px;">
+    <span class="list-count" id="list_count">0名登録</span>
   </div>
   <div class="search-bar">
     <input id="list_search" placeholder="名前・住所・会員番号・電話番号で検索..." oninput="renderList()" />

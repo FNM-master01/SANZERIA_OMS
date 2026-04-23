@@ -520,86 +520,58 @@ function showMember(m) {
   document.getElementById('scan_result').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Bluetooth ESC/POS 印刷（Android Chrome専用・58mm幅）
-let btDevice = null;
-let btChar = null;
+// WiFi/LAN ePOS-Print 印刷（iPhone・Android両対応・58mm幅）
+const PRINTER_IP = '192.168.1.55';
 
 async function doBluetoothPrint() {
   if (!currentMember) { alert('会員情報を先に読み込んでください'); return; }
-
-  // WebBluetooth非対応チェック
-  if (!navigator.bluetooth) {
-    alert('このブラウザはBluetooth印刷に対応していません。\n下の「ブラウザで印刷」をお使いください。\n\n※Android Chromeをお使いください');
-    return;
-  }
-
+  showToast('プリンターに送信中...');
   try {
-    showToast('プリンターに接続中...');
-
-    // Bluetooth接続（未接続の場合のみ）
-    if (!btDevice || !btDevice.gatt.connected) {
-      btDevice = await navigator.bluetooth.requestDevice({
-        filters: [{ namePrefix: 'TM-m30' }],
-        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-      });
-      const server = await btDevice.gatt.connect();
-      const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-      btChar = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-    }
-
-    showToast('印刷中...');
-    const data = buildEscPos58(currentMember);
-    // 20バイトずつ分割送信
-    const chunkSize = 20;
-    for (let i = 0; i < data.length; i += chunkSize) {
-      await btChar.writeValue(data.slice(i, i + chunkSize));
-    }
-    showToast('✅ 印刷完了！');
-  } catch(e) {
-    if (e.name === 'NotFoundError') {
-      showToast('プリンターが見つかりませんでした');
+    const xml = buildEPosXml(currentMember);
+    const url = 'https://' + PRINTER_IP + '/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '""' },
+      body: xml
+    });
+    if (res.ok) {
+      showToast('✅ 印刷完了！');
     } else {
-      console.error(e);
-      alert('印刷エラー：' + e.message + '\n\n下の「ブラウザで印刷」をお試しください');
+      throw new Error('HTTP ' + res.status);
     }
-    btDevice = null; btChar = null;
+  } catch(e) {
+    alert('印刷エラーが発生しました。\n\nプリンターが同じWiFi/LANに繋がっているか確認してください。\n\n下の「ブラウザで印刷」をお使いください。\n\n詳細：' + e.message);
   }
 }
 
-function buildEscPos58(m) {
+function buildEPosXml(m) {
   const now = new Date();
-  const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
-  const lines = [
-    '\x1B\x40',                    // 初期化
-    '\x1B\x61\x01',                // 中央揃え
-    '\x1B\x21\x10',                // 倍高
-    '宅配伝票\n',
-    '\x1B\x21\x00',                // 標準
-    dt + '\n',
-    '\x1B\x61\x00',                // 左揃え
-    '--------------------------------\n',
-    '会員番号: ' + m.id + '\n',
-    '\x1B\x21\x10',                // 倍高
-    m.name + ' 様\n',
-    '\x1B\x21\x00',                // 標準
-    '--------------------------------\n',
-    'TEL: ' + m.tel + '\n',
-    (m.zip ? '〒' + m.zip + '\n' : ''),
-    '住所: ' + (m.addr || '—') + '\n',
-    '--------------------------------\n',
-    '配達メモ:\n',
-    (m.memo || '（なし）') + '\n',
-    '--------------------------------\n',
-    '\x1B\x61\x01',                // 中央揃え
-    'いつもありがとうございます\n',
-    '\n\n\n',
-    '\x1D\x56\x41\x03',           // カット
-  ];
-
-  // 文字列をShift-JISバイト列に変換（ASCII範囲のみ・日本語はUTF-8で送信）
-  const text = lines.join('');
-  const encoder = new TextEncoder();
-  return encoder.encode(text);
+  const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+  const esc = (text) => text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+<s:Body>
+<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+<text lang="ja" smooth="true"/>
+<text align="center" width="2" height="2">宅配伝票&#10;</text>
+<text align="center" width="1" height="1">${esc(dt)}&#10;</text>
+<text>--------------------------------&#10;</text>
+<text align="left">会員番号: ${esc(m.id)}&#10;</text>
+<text width="2" height="2">${esc(m.name)} 様&#10;</text>
+<text width="1" height="1">--------------------------------&#10;</text>
+<text>TEL: ${esc(m.tel)}&#10;</text>
+${m.zip ? `<text>〒${esc(m.zip)}&#10;</text>` : ''}
+<text>住所: ${esc(m.addr || '—')}&#10;</text>
+<text>--------------------------------&#10;</text>
+<text>配達メモ:&#10;</text>
+<text>${esc(m.memo || '（なし）')}&#10;</text>
+<text>--------------------------------&#10;</text>
+<text align="center">いつもありがとうございます&#10;</text>
+<feed line="3"/>
+<cut type="part"/>
+</epos-print>
+</s:Body>
+</s:Envelope>`;
 }
 
 function doPrint() {

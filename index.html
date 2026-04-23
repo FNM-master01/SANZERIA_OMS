@@ -192,9 +192,10 @@
       </div>
     </div>
 
-    <p class="section-title">印刷プレビュー（80mm幅）</p>
+    <p class="section-title">印刷プレビュー（58mm幅）</p>
     <div class="receipt-wrap" id="receipt_preview"></div>
-    <button class="btn-print" onclick="doPrint()">&#128438; TM-m30III-H で印刷</button>
+    <button class="btn-print" onclick="doBluetoothPrint()">&#128438; TM-m30III-H で印刷</button>
+    <button class="btn-secondary" style="margin-top:8px;" onclick="doPrint()">🖨️ ブラウザで印刷（代替）</button>
   </div>
 </div>
 
@@ -481,6 +482,11 @@ function showMember(m) {
   ].map(([l, v]) => `<div class="info-row"><span class="info-lbl">${l}</span><span class="info-val">${v}</span></div>`).join('');
   const now = new Date();
   const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+  // Google Maps QRコード生成
+  const mapUrl = 'https://maps.google.com/?q=' + encodeURIComponent(m.addr || '');
+  const mapQrId = 'map_qr_' + Date.now();
+
   document.getElementById('receipt_preview').innerHTML = `
     <div class="r-center r-bold" style="font-size:13px;">◆ 宅配伝票 ◆</div>
     <div class="r-center" style="font-size:10px; margin-bottom:4px;">${dt}</div>
@@ -495,23 +501,130 @@ function showMember(m) {
     <div>【配達メモ】</div>
     <div>${m.memo || '（なし）'}</div>
     <hr class="r-dash">
+    <div class="r-center" style="font-size:10px; margin-bottom:4px;">📍 配達先マップ</div>
+    <div class="r-center" id="${mapQrId}"></div>
+    <div class="r-center" style="font-size:9px; color:#666; margin-top:3px;">スキャンでナビ開始</div>
+    <hr class="r-dash">
     <div class="r-center" style="font-size:10px;">いつもありがとうございます</div>`;
+
+  // QRコードをレシートに描画
+  if (m.addr) {
+    new QRCode(document.getElementById(mapQrId), {
+      text: mapUrl,
+      width: 100, height: 100,
+      colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+
   document.getElementById('scan_result').scrollIntoView({ behavior: 'smooth' });
 }
 
+// Bluetooth ESC/POS 印刷（Android Chrome専用・58mm幅）
+let btDevice = null;
+let btChar = null;
+
+async function doBluetoothPrint() {
+  if (!currentMember) { alert('会員情報を先に読み込んでください'); return; }
+
+  // WebBluetooth非対応チェック
+  if (!navigator.bluetooth) {
+    alert('このブラウザはBluetooth印刷に対応していません。\n下の「ブラウザで印刷」をお使いください。\n\n※Android Chromeをお使いください');
+    return;
+  }
+
+  try {
+    showToast('プリンターに接続中...');
+
+    // Bluetooth接続（未接続の場合のみ）
+    if (!btDevice || !btDevice.gatt.connected) {
+      btDevice = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: 'TM-m30' }],
+        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+      });
+      const server = await btDevice.gatt.connect();
+      const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      btChar = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+    }
+
+    showToast('印刷中...');
+    const data = buildEscPos58(currentMember);
+    // 20バイトずつ分割送信
+    const chunkSize = 20;
+    for (let i = 0; i < data.length; i += chunkSize) {
+      await btChar.writeValue(data.slice(i, i + chunkSize));
+    }
+    showToast('✅ 印刷完了！');
+  } catch(e) {
+    if (e.name === 'NotFoundError') {
+      showToast('プリンターが見つかりませんでした');
+    } else {
+      console.error(e);
+      alert('印刷エラー：' + e.message + '\n\n下の「ブラウザで印刷」をお試しください');
+    }
+    btDevice = null; btChar = null;
+  }
+}
+
+function buildEscPos58(m) {
+  const now = new Date();
+  const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+  const lines = [
+    '\x1B\x40',                    // 初期化
+    '\x1B\x61\x01',                // 中央揃え
+    '\x1B\x21\x10',                // 倍高
+    '宅配伝票\n',
+    '\x1B\x21\x00',                // 標準
+    dt + '\n',
+    '\x1B\x61\x00',                // 左揃え
+    '--------------------------------\n',
+    '会員番号: ' + m.id + '\n',
+    '\x1B\x21\x10',                // 倍高
+    m.name + ' 様\n',
+    '\x1B\x21\x00',                // 標準
+    '--------------------------------\n',
+    'TEL: ' + m.tel + '\n',
+    (m.zip ? '〒' + m.zip + '\n' : ''),
+    '住所: ' + (m.addr || '—') + '\n',
+    '--------------------------------\n',
+    '配達メモ:\n',
+    (m.memo || '（なし）') + '\n',
+    '--------------------------------\n',
+    '\x1B\x61\x01',                // 中央揃え
+    'いつもありがとうございます\n',
+    '\n\n\n',
+    '\x1D\x56\x41\x03',           // カット
+  ];
+
+  // 文字列をShift-JISバイト列に変換（ASCII範囲のみ・日本語はUTF-8で送信）
+  const text = lines.join('');
+  const encoder = new TextEncoder();
+  return encoder.encode(text);
+}
+
 function doPrint() {
+  // 印刷用にマップQRのcanvas画像を取得
+  const mapQrEl = document.querySelector('#receipt_preview canvas, #receipt_preview img');
+  const mapQrSrc = mapQrEl ? (mapQrEl.tagName === 'CANVAS' ? mapQrEl.toDataURL() : mapQrEl.src) : '';
   const content = document.getElementById('receipt_preview').innerHTML;
+
+  const printContent = mapQrSrc
+    ? content.replace(/<canvas[^>]*>.*?<\/canvas>/s, `<img src="${mapQrSrc}" style="width:70px;height:70px;" />`)
+             .replace(/<img[^>]*class="[^"]*qrcode[^"]*"[^>]*>/i, `<img src="${mapQrSrc}" style="width:70px;height:70px;" />`)
+    : content;
+
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>宅配伝票</title>
   <style>
-    body { font-family: 'Courier New', monospace; font-size: 13px; width: 72mm; margin: 0 auto; padding: 4mm; color: #000; }
+    body { font-family: 'Courier New', monospace; font-size: 11px; width: 52mm; margin: 0 auto; padding: 3mm; color: #000; }
     .r-center { text-align: center; }
     .r-row { display: flex; justify-content: space-between; }
     .r-bold { font-weight: bold; }
     .r-dash { border: none; border-top: 1px dashed #000; margin: 4px 0; }
-    @media print { body { width: 72mm; } }
+    img { display: block; margin: 0 auto; }
+    @media print { body { width: 52mm; } }
   </style></head>
-  <body>${content}
+  <body>${printContent}
   <script>window.onload=function(){ window.print(); }<\/script>
   </body></html>`);
 }
@@ -759,3 +872,4 @@ init();
 </script>
 </body>
 </html>
+

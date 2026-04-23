@@ -528,7 +528,7 @@ async function doBluetoothPrint() {
   showToast('プリンターに送信中...');
   try {
     const xml = buildEPosXml(currentMember);
-    const url = 'https://' + PRINTER_IP + '/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000';
+    const url = 'http://' + PRINTER_IP + '/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000';
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '""' },
@@ -844,4 +844,3 @@ init();
 </script>
 </body>
 </html>
-

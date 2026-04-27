@@ -528,7 +528,6 @@ function doBluetoothPrint() {
   const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // 公式サンプルに基づいた正式なePOS-Print XML
   const xml = `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
 <text lang="ja"/>
 <text smooth="true"/>
@@ -556,11 +555,19 @@ ${m.zip ? `<text>〒${esc(m.zip)}\n</text>` : ''}
 <cut type="feed"/>
 </epos-print>`;
 
-  // Base64エンコードしてURLスキームで送信
+  // Base64エンコード（日本語対応）
   const b64 = btoa(unescape(encodeURIComponent(xml)));
   const tmpaUrl = 'epsontmlink://com.epson.tmpa?ver=1&type=xml&data=' + encodeURIComponent(b64);
-  window.location.href = tmpaUrl;
-  showToast('Epson TM Print Assistantを起動中...');
+
+  // アンカータグ経由で起動（Android Chromeで確実に動作）
+  const a = document.createElement('a');
+  a.href = tmpaUrl;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => document.body.removeChild(a), 1000);
+
+  showToast('TM Print Assistantを起動中...');
 }
 
 function buildEPosXml(m, dt) {

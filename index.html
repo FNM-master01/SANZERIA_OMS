@@ -520,46 +520,33 @@ function showMember(m) {
   document.getElementById('scan_result').scrollIntoView({ behavior: 'smooth' });
 }
 
-// WiFi/LAN ePOS-Print 印刷（iPhone・Android両対応・58mm幅）
-const PRINTER_IP = '192.168.1.55';
-
-async function doBluetoothPrint() {
+// Epson TM Print Assistant 経由で印刷
+function doBluetoothPrint() {
   if (!currentMember) { alert('会員情報を先に読み込んでください'); return; }
-  showToast('プリンターに送信中...');
-  try {
-    const xml = buildEPosXml(currentMember);
-    // ePOS-Print XML 直接送信
-    const url = 'http://' + PRINTER_IP + '/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000';
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/xml; charset=utf-8',
-        'If-Modified-Since': 'Thu, 01 Jan 1970 00:00:00 GMT',
-        'SOAPAction': '""'
-      },
-      body: xml
-    });
-    const text = await res.text();
-    if (text.includes('success') || text.includes('SchemaVersion') || res.ok) {
-      showToast('✅ 印刷完了！');
-    } else {
-      console.log('Printer response:', text);
-      throw new Error('プリンターからエラー応答: ' + text.substring(0, 100));
-    }
-  } catch(e) {
-    if (e.message.includes('プリンターから')) {
-      alert(e.message);
-    } else {
-      alert('通信エラー：' + e.message + '\n\n下の「ブラウザで印刷」をお使いください。');
-    }
-  }
-}
-
-function buildEPosXml(m) {
+  const m = currentMember;
   const now = new Date();
   const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
-  const esc = (text) => String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  return `<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print"><initialize/><text lang="ja" smooth="true"/><text align="center" width="2" height="2">${esc('宅配伝票')}\n</text><text align="center" width="1" height="1">${esc(dt)}\n</text><text align="left">------------------------\n</text><text>会員番号: ${esc(m.id)}\n</text><text width="2" height="2">${esc(m.name)} 様\n</text><text width="1" height="1">------------------------\n</text><text>TEL: ${esc(m.tel)}\n</text>${m.zip ? `<text>〒${esc(m.zip)}\n</text>` : ''}<text>住所:\n${esc(m.addr||'—')}\n</text><text>------------------------\n</text><text>配達メモ:\n${esc(m.memo||'（なし）')}\n</text><text>------------------------\n</text><text align="center">いつもありがとうございます\n</text><feed line="4"/><cut type="part"/></epos-print></s:Body></s:Envelope>`;
+
+  // XMLデータ作成
+  const xml = buildEPosXml(m, dt);
+
+  // Base64エンコード
+  const encoded = btoa(unescape(encodeURIComponent(xml)));
+
+  // Epson TM Print Assistant URLスキームで起動
+  const tmpaUrl = 'epsontmlink://com.epson.tmpa?data=' + encodeURIComponent(encoded);
+  window.location.href = tmpaUrl;
+
+  showToast('Epson TM Print Assistantを起動中...');
+}
+
+function buildEPosXml(m, dt) {
+  const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if (!dt) {
+    const now = new Date();
+    dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+  }
+  return `<?xml version="1.0" encoding="utf-8"?><PrintData><Parameter><devid>TM-m30III-H</devid><timeout>10</timeout></Parameter><PrintRequestData xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print"><initialize/><text lang="ja" smooth="true"/><text align="center" width="2" height="2">${esc('宅配伝票')}\n</text><text align="center" width="1" height="1">${esc(dt)}\n</text><text align="left">------------------------\n</text><text>会員番号: ${esc(m.id)}\n</text><text width="2" height="2">${esc(m.name)} 様\n</text><text width="1" height="1">------------------------\n</text><text>TEL: ${esc(m.tel)}\n</text>${m.zip?`<text>〒${esc(m.zip)}\n</text>`:''}<text>住所:\n${esc(m.addr||'—')}\n</text><text>------------------------\n</text><text>配達メモ:\n${esc(m.memo||'（なし）')}\n</text><text>------------------------\n</text><text align="center">いつもありがとうございます\n</text><feed line="4"/><cut type="part"/></PrintRequestData></PrintData>`;
 }
 
 function doPrint() {

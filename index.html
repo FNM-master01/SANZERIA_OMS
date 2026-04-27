@@ -528,6 +528,8 @@ function doBluetoothPrint() {
   const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+  const mapUrl = 'https://maps.google.com/?q=' + encodeURIComponent(m.addr||'');
+
   const xml = `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
 <text lang="ja"/>
 <text smooth="true"/>
@@ -550,6 +552,11 @@ ${m.zip ? `<text>〒${esc(m.zip)}\n</text>` : ''}
 <text>${esc(m.memo||'（なし）')}\n</text>
 <text>------------------------\n</text>
 <text align="center"/>
+<text>📍 配達先マップ\n</text>
+<symbol type="qrcode_model_2" level="default" width="5" height="0" size="0">${mapUrl}</symbol>
+<feed unit="5"/>
+<text>スキャンでナビ開始\n</text>
+<feed unit="5"/>
 <text>いつもありがとうございます\n</text>
 <feed line="4"/>
 <cut type="feed"/>

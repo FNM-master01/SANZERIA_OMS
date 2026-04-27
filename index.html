@@ -555,18 +555,14 @@ ${m.zip ? `<text>〒${esc(m.zip)}\n</text>` : ''}
 <cut type="feed"/>
 </epos-print>`;
 
-  // Base64エンコード（日本語対応）
-  const b64 = btoa(unescape(encodeURIComponent(xml)));
-  const tmpaUrl = 'epsontmlink://com.epson.tmpa?ver=1&type=xml&data=' + encodeURIComponent(b64);
+  // XMLをそのままURLエンコードして渡す（Base64不要）
+  const tmpaUrl = 'tmprintassistant://tmprintassistant.epson.com/print'
+    + '?ver=1'
+    + '&data-type=eposprintxml'
+    + '&data=' + encodeURIComponent(xml)
+    + '&reselect=yes';
 
-  // アンカータグ経由で起動（Android Chromeで確実に動作）
-  const a = document.createElement('a');
-  a.href = tmpaUrl;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => document.body.removeChild(a), 1000);
-
+  window.location.href = tmpaUrl;
   showToast('TM Print Assistantを起動中...');
 }
 

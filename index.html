@@ -420,29 +420,44 @@ function showQR(m) {
 }
 
 function printQR() {
-  const wrap = document.getElementById('qr_canvas_wrap');
-  const canvas = wrap.querySelector('canvas');
-  const img = wrap.querySelector('img');
-  const src = canvas ? canvas.toDataURL() : (img ? img.src : '');
-  const label = document.getElementById('qr_id_label').textContent;
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>会員QRコード</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 30px; }
-    .card { display: inline-block; border: 2px solid #333; border-radius: 12px; padding: 20px 30px; }
-    h2 { font-size: 14px; margin-bottom: 12px; color: #333; }
-    img { width: 200px; height: 200px; display: block; margin: 0 auto; }
-    p { font-size: 12px; color: #666; margin-top: 10px; }
-    @media print { body { padding: 0; } }
-  </style></head>
-  <body>
-    <div class="card">
-      <h2>${label}</h2>
-      <img src="${src}" />
-      <p>宅配会員カード</p>
-    </div>
-    <script>window.onload=function(){ window.print(); }<\/script>
-  </body></html>`);
+  if (!db.length) return;
+  const m = db[db.length - 1];
+  const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const xml = `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+<text lang="ja"/>
+<text smooth="true"/>
+<text font="font_a"/>
+<text align="center"/>
+<text width="2" height="2">${esc('会員カード')}\n</text>
+<feed unit="5"/>
+<text width="1" height="1">会員番号: ${esc(m.id)}\n</text>
+<text width="2" height="1">${esc(m.name)} 様\n</text>
+<text width="1" height="1"/>
+<feed unit="5"/>
+<text>------------------------\n</text>
+<text>下記QRコードをスキャンして\n</text>
+<text>配達伝票を発行します\n</text>
+<text>------------------------\n</text>
+<feed unit="5"/>
+<symbol type="qrcode_model_2" level="default" width="8" height="0" size="0">${esc(m.id)}</symbol>
+<feed unit="5"/>
+<text>${esc(m.id)}\n</text>
+<feed unit="5"/>
+<text>------------------------\n</text>
+<text>TEL: ${esc(m.tel)}\n</text>
+<feed line="4"/>
+<cut type="feed"/>
+</epos-print>`;
+
+  const tmpaUrl = 'tmprintassistant://tmprintassistant.epson.com/print'
+    + '?ver=1'
+    + '&data-type=eposprintxml'
+    + '&data=' + encodeURIComponent(xml)
+    + '&reselect=yes';
+
+  window.location.href = tmpaUrl;
+  showToast('会員QRコードを印刷中...');
 }
 
 function resetForm() {
@@ -528,7 +543,8 @@ function doBluetoothPrint() {
   const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  const mapUrl = 'https://maps.google.com/?q=' + encodeURIComponent(m.addr||'');
+  // 住所をそのまま渡す（二重エンコード防止）
+  const mapUrl = 'https://maps.google.com/?q=' + (m.addr||'');
 
   const xml = `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
 <text lang="ja"/>
@@ -552,8 +568,8 @@ ${m.zip ? `<text>〒${esc(m.zip)}\n</text>` : ''}
 <text>${esc(m.memo||'（なし）')}\n</text>
 <text>------------------------\n</text>
 <text align="center"/>
-<text>📍 配達先マップ\n</text>
-<symbol type="qrcode_model_2" level="default" width="5" height="0" size="0">${mapUrl}</symbol>
+<text>配達先マップ\n</text>
+<symbol type="qrcode_model_2" level="default" width="5">${esc(mapUrl)}</symbol>
 <feed unit="5"/>
 <text>スキャンでナビ開始\n</text>
 <feed unit="5"/>
@@ -732,29 +748,44 @@ function reissueQR() {
 }
 
 function printReissueQR() {
-  const wrap = document.getElementById('reissue_qr_wrap');
-  const canvas = wrap.querySelector('canvas');
-  const img = wrap.querySelector('img');
-  const src = canvas ? canvas.toDataURL() : (img ? img.src : '');
-  const label = document.getElementById('reissue_qr_label').textContent;
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>会員QRコード</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 30px; }
-    .card { display: inline-block; border: 2px solid #333; border-radius: 12px; padding: 20px 30px; }
-    h2 { font-size: 14px; margin-bottom: 12px; color: #333; }
-    img { width: 200px; height: 200px; display: block; margin: 0 auto; }
-    p { font-size: 12px; color: #666; margin-top: 10px; }
-    @media print { body { padding: 0; } }
-  </style></head>
-  <body>
-    <div class="card">
-      <h2>${label}</h2>
-      <img src="${src}" />
-      <p>宅配会員カード</p>
-    </div>
-    <script>window.onload=function(){ window.print(); }<\/script>
-  </body></html>`);
+  if (!currentMember) return;
+  const m = currentMember;
+  const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const xml = `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+<text lang="ja"/>
+<text smooth="true"/>
+<text font="font_a"/>
+<text align="center"/>
+<text width="2" height="2">${esc('会員カード')}\n</text>
+<feed unit="5"/>
+<text width="1" height="1">会員番号: ${esc(m.id)}\n</text>
+<text width="2" height="1">${esc(m.name)} 様\n</text>
+<text width="1" height="1"/>
+<feed unit="5"/>
+<text>------------------------\n</text>
+<text>下記QRコードをスキャンして\n</text>
+<text>配達伝票を発行します\n</text>
+<text>------------------------\n</text>
+<feed unit="5"/>
+<symbol type="qrcode_model_2" level="default" width="8" height="0" size="0">${esc(m.id)}</symbol>
+<feed unit="5"/>
+<text>${esc(m.id)}\n</text>
+<feed unit="5"/>
+<text>------------------------\n</text>
+<text>TEL: ${esc(m.tel)}\n</text>
+<feed line="4"/>
+<cut type="feed"/>
+</epos-print>`;
+
+  const tmpaUrl = 'tmprintassistant://tmprintassistant.epson.com/print'
+    + '?ver=1'
+    + '&data-type=eposprintxml'
+    + '&data=' + encodeURIComponent(xml)
+    + '&reselect=yes';
+
+  window.location.href = tmpaUrl;
+  showToast('会員QRコードを印刷中...');
 }
 
 // CSV エクスポート

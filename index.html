@@ -526,27 +526,51 @@ function doBluetoothPrint() {
   const m = currentMember;
   const now = new Date();
   const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+  const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // XMLデータ作成
-  const xml = buildEPosXml(m, dt);
+  // 公式サンプルに基づいた正式なePOS-Print XML
+  const xml = `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+<text lang="ja"/>
+<text smooth="true"/>
+<text font="font_a"/>
+<text align="center"/>
+<text width="2" height="2">${esc('宅配伝票')}\n</text>
+<text width="1" height="1">${esc(dt)}\n</text>
+<feed unit="5"/>
+<text align="left"/>
+<text>------------------------\n</text>
+<text>会員番号: ${esc(m.id)}\n</text>
+<text width="2" height="1">${esc(m.name)} 様\n</text>
+<text width="1" height="1"/>
+<text>------------------------\n</text>
+<text>TEL: ${esc(m.tel)}\n</text>
+${m.zip ? `<text>〒${esc(m.zip)}\n</text>` : ''}
+<text>住所:\n${esc(m.addr||'—')}\n</text>
+<text>------------------------\n</text>
+<text>配達メモ:\n</text>
+<text>${esc(m.memo||'（なし）')}\n</text>
+<text>------------------------\n</text>
+<text align="center"/>
+<text>いつもありがとうございます\n</text>
+<feed line="4"/>
+<cut type="feed"/>
+</epos-print>`;
 
-  // Base64エンコード
-  const encoded = btoa(unescape(encodeURIComponent(xml)));
-
-  // Epson TM Print Assistant URLスキームで起動
-  const tmpaUrl = 'epsontmlink://com.epson.tmpa?data=' + encodeURIComponent(encoded);
+  // Base64エンコードしてURLスキームで送信
+  const b64 = btoa(unescape(encodeURIComponent(xml)));
+  const tmpaUrl = 'epsontmlink://com.epson.tmpa?ver=1&type=xml&data=' + encodeURIComponent(b64);
   window.location.href = tmpaUrl;
-
   showToast('Epson TM Print Assistantを起動中...');
 }
 
 function buildEPosXml(m, dt) {
+  // buildEPosXmlは後方互換のため残す
   const esc = (t) => String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   if (!dt) {
     const now = new Date();
     dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
   }
-  return `<?xml version="1.0" encoding="utf-8"?><PrintData><Parameter><devid>TM-m30III-H</devid><timeout>10</timeout></Parameter><PrintRequestData xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print"><initialize/><text lang="ja" smooth="true"/><text align="center" width="2" height="2">${esc('宅配伝票')}\n</text><text align="center" width="1" height="1">${esc(dt)}\n</text><text align="left">------------------------\n</text><text>会員番号: ${esc(m.id)}\n</text><text width="2" height="2">${esc(m.name)} 様\n</text><text width="1" height="1">------------------------\n</text><text>TEL: ${esc(m.tel)}\n</text>${m.zip?`<text>〒${esc(m.zip)}\n</text>`:''}<text>住所:\n${esc(m.addr||'—')}\n</text><text>------------------------\n</text><text>配達メモ:\n${esc(m.memo||'（なし）')}\n</text><text>------------------------\n</text><text align="center">いつもありがとうございます\n</text><feed line="4"/><cut type="part"/></PrintRequestData></PrintData>`;
+  return `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print"><text lang="ja"/><text>${esc(m.name)}\n</text><cut type="feed"/></epos-print>`;
 }
 
 function doPrint() {

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>設置手順書（最新版）— 宅配会員管理システム</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; max-width: 760px; margin: 0 auto; padding: 24px 20px; color: #222; line-height: 1.8; }
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #888; font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 18px; font-weight: 700; margin: 40px 0 12px; padding-left: 12px; border-left: 4px solid #111; }
+  h3 { font-size: 15px; font-weight: 700; margin: 20px 0 8px; color: #333; }
+  .step { background: #f9f9f9; border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; border: 1px solid #e8e8e8; }
+  .step-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; margin-bottom: 8px; }
+  .step-num { display: inline-flex; background: #111; color: #fff; font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; }
+  .step-body { font-size: 14px; color: #444; padding-left: 34px; }
+  .step-body li { margin-bottom: 6px; }
+  .step-body ul { padding-left: 18px; }
+  .note { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #555; margin: 8px 0 0; }
+  .warn { background: #fff3f3; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #b91c1c; margin: 8px 0 0; }
+  .success { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #2e7d32; margin: 12px 0; font-weight: 600; }
+  .url { background: #1a1a1a; color: #7dd3fc; font-family: monospace; font-size: 13px; padding: 10px 14px; border-radius: 6px; margin: 8px 0; word-break: break-all; }
+  .table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
+  .table th { background: #f5f5f5; padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+  .table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-yellow { background: #fef9c3; color: #854d0e; }
+  hr { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+  .system-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .overview-card { background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 10px; padding: 14px; }
+  .overview-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #555; }
+  .overview-card p { font-size: 13px; color: #444; margin-bottom: 4px; }
+  a { color: #1a56db; }
+  p { margin-bottom: 8px; }
+  @media (max-width: 600px) { .system-overview { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>設置手順書</h1>
+<p class="subtitle">宅配会員管理システム 最新版 — 2026年4月</p>
+
+<h2>システム概要</h2>
+
+<div class="system-overview">
+  <div class="overview-card">
+    <h4>📱 スマホ（Android Chrome）</h4>
+    <p>✅ 会員登録・QRコード印刷</p>
+    <p>✅ QRスキャン → 顧客情報呼び出し</p>
+    <p>✅ 宅配伝票印刷（住所マップQR付き）</p>
+  </div>
+  <div class="overview-card">
+    <h4>💻 PC</h4>
+    <p>✅ Googleスプレッドシートで会員一覧管理</p>
+    <p>✅ 会員情報の編集・追記</p>
+    <p>✅ データのバックアップ</p>
+  </div>
+  <div class="overview-card">
+    <h4>🖨️ プリンター</h4>
+    <p>EPSON TM-m30III-H</p>
+    <p>Bluetooth接続</p>
+    <p>58mm / 80mm 両対応</p>
+  </div>
+  <div class="overview-card">
+    <h4>☁️ データ管理</h4>
+    <p>Googleスプレッドシートと自動同期</p>
+    <p>起動時に最新データを自動取得</p>
+    <p>完全無料で運用可能</p>
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 1 ── GitHub Pages にシステムを設置</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>GitHubアカウントを作成</div>
+  <div class="step-body">
+    <a href="https://github.com" target="_blank">https://github.com</a> を開いて「Sign up」から無料登録
+    <div class="note">ユーザー名はURLの一部になります（例：tanaka-delivery）</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>リポジトリを作成</div>
+  <div class="step-body">
+    <ul>
+      <li>右上「＋」→「New repository」</li>
+      <li>名前：<strong>member</strong></li>
+      <li><strong>Public</strong>（公開）を選択</li>
+      <li>「Add a README file」にチェック</li>
+      <li>「Create repository」をクリック</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">3</span>HTMLファイルをアップロード</div>
+  <div class="step-body">
+    <ul>
+      <li>「Add file」→「Upload files」</li>
+      <li><strong>member-system.html</strong> をアップロード</li>
+      <li>ファイルをクリック → 鉛筆アイコン → ファイル名を <strong>index.html</strong> に変更</li>
+      <li>「Commit changes」で保存</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">4</span>GitHub Pages を有効化</div>
+  <div class="step-body">
+    <ul>
+      <li>「Settings」→ 左メニュー「Pages」</li>
+      <li>Branch を「main」に変更 → 「Save」</li>
+      <li>1〜2分後にURLが発行される</li>
+    </ul>
+    <div class="url">https://あなたのユーザー名.github.io/member/</div>
+    <div class="success">✅ このURLがシステムのアドレスです</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">5</span>スマホのホーム画面に追加</div>
+  <div class="step-body">
+    <strong>Android（Chrome）：</strong>URLを開く → 右上「⋮」→「ホーム画面に追加」<br>
+    <strong>iPhone（Safari）：</strong>URLを開く → 下の共有ボタン →「ホーム画面に追加」
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 2 ── Googleスプレッドシート連携</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>スプレッドシートを作成</div>
+  <div class="step-body">
+    <a href="https://docs.google.com/spreadsheets/create" target="_blank">https://docs.google.com/spreadsheets/create</a> を開いて新規作成
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>Apps Script を開く</div>
+  <div class="step-body">
+    スプレッドシートのメニュー「拡張機能」→「Apps Script」をクリック
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">3</span>コードを貼り付け</div>
+  <div class="step-body">
+    <ul>
+      <li>最初から書いてあるコードを全部削除</li>
+      <li>GitHubにある <strong>google-apps-script.js</strong> を開いてコードを全部コピー</li>
+      <li>Apps Scriptに貼り付けてCtrl+Sで保存</li>
+    </ul>
+    <div class="note">💡 google-apps-script.js はGitHubのリポジトリに保管してあります。いつでもコードを確認・コピーできます。</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">4</span>デプロイする</div>
+  <div class="step-body">
+    <ul>
+      <li>「デプロイ」→「新しいデプロイ」</li>
+      <li>種類：<strong>ウェブアプリ</strong></li>
+      <li>アクセスできるユーザー：<strong>全員</strong></li>
+      <li>「デプロイ」→ 権限を承認（Googleアカウントで許可）</li>
+      <li>発行されたURLをコピーしてどこかにメモしておく</li>
+    </ul>
+    <div class="note">権限承認時に「このアプリは確認されていません」と出たら「詳細」→「安全ではないページへ移動」を選んでください。自分で作ったコードなので安全です。</div>
+    <div class="warn">⚠️ 発行されたApps Script URLは他人に教えないでください。このURLを知っている人は会員データにアクセスできます。</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">5</span>システムにURLを設定</div>
+  <div class="step-body">
+    <ul>
+      <li>システムを開いて右上「⚙️ 設定」をタップ</li>
+      <li>Apps Script のURLを貼り付け</li>
+      <li>「URLを保存して接続テスト」をタップ</li>
+    </ul>
+    <div class="success">✅ 接続成功！スプレッドシートに〇件のデータがあります</div>
+    <div class="note">💡 一度設定すると次回からは自動で接続されます。再設定は不要です。</div>
+  </div>
+</div>
+
+<hr>
+
+<h2>STEP 3 ── プリンター設定（EPSON TM-m30III-H）</h2>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">1</span>Epson TM Print Assistant をインストール</div>
+  <div class="step-body">
+    <strong>Android：</strong>Google Play で「Epson TM Print Assistant」を検索<br>
+    <strong>iPhone：</strong>App Store で「Epson TM Print Assistant」を検索
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">2</span>Bluetoothでペアリング</div>
+  <div class="step-body">
+    <ul>
+      <li>プリンターの電源を入れる</li>
+      <li>スマホの「設定」→「Bluetooth」を開く</li>
+      <li>「TM-m30III-H_XXXXXX」をタップしてペアリング</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">3</span>TM Print Assistant でプリンターを設定</div>
+  <div class="step-body">
+    <ul>
+      <li>アプリを開く</li>
+      <li>「プリンター未設定」をタップ</li>
+      <li>「Bluetooth」→「TM-m30III-H_XXXXXX」を選択</li>
+      <li>「プリンターの接続を確認する（テスト通信）」で印刷テスト</li>
+    </ul>
+    <div class="success">✅ Print successfully!! と印刷されれば完了</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title"><span class="step-num">4</span>ePOS-Print を有効化</div>
+  <div class="step-body">
+    Epson TM Utility アプリで：
+    <ul>
+      <li>「プリンターの設定を変更する」→「各種設定」</li>
+      <li>右にスクロール →「インテリジェント機能」をタップ</li>
+      <li>「ePOS-Device」を<strong>無効</strong>に変更 →「プリンターへ設定」</li>
+      <li>「ePOS-Print」を<strong>有効</strong>に変更 →「プリンターへ設定」</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>日常の使い方</h2>
+
+<table class="table">
+  <tr>
+    <th>作業</th>
+    <th>手順</th>
+  </tr>
+  <tr>
+    <td><strong>会員登録</strong></td>
+    <td>「新規登録」タブ → 情報入力 →「登録してQRコードを発行」→「QRコードを印刷する」でカード用QRを印刷</td>
+  </tr>
+  <tr>
+    <td><strong>宅配伝票印刷</strong></td>
+    <td>TM Print Assistantを起動 →「スキャン」タブ → QRをスキャン →「TM-m30III-H で印刷」</td>
+  </tr>
+  <tr>
+    <td><strong>会員情報の編集</strong></td>
+    <td>PCでGoogleスプレッドシートを開いて直接編集 → スマホ起動時に自動反映</td>
+  </tr>
+  <tr>
+    <td><strong>QR再発行</strong></td>
+    <td>「スキャン」→ 会員を呼び出す →「🔲 QRコードを再発行」→「QRコードを印刷する」</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>重要な情報（メモしておく）</h2>
+
+<div class="step">
+  <div class="step-title">システムURL</div>
+  <div class="step-body">
+    <div class="url">https://あなたのユーザー名.github.io/リポジトリ名/</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title">Apps Script URL</div>
+  <div class="step-body">
+    <div class="url">（デプロイ後に発行されるURLをここにメモしてください）</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-title">プリンター情報</div>
+  <div class="step-body">
+    機種：EPSON TM-m30III-H<br>
+    接続：Bluetooth（TM-m30III-H_027460）<br>
+    印刷アプリ：Epson TM Print Assistant
+  </div>
+</div>
+
+<hr>
+
+<h2>注意事項</h2>
+
+<div class="warn">⚠️ 住所は必ず都道府県から入力してください。「大阪府吹田市〇〇」のように入力しないと地図QRコードが正確に動作しません。</div>
+
+<div class="warn">⚠️ 宅配伝票を印刷する前にEpson TM Print Assistantを起動してプリンターと接続しておいてください。</div>
+
+<div class="note">💡 会員データはGoogleスプレッドシートに自動保存されます。PCでスプレッドシートを開くといつでも確認・編集できます。</div>
+
+<div class="note">💡 システムを開くと自動的に最新データを取得します。手動での同期操作は不要です。</div>
+
+<hr>
+<p style="font-size:13px;color:#aaa;text-align:center;">宅配会員管理システム 設置手順書（最新版）— 2026年4月</p>
+
+</body>
+</html>

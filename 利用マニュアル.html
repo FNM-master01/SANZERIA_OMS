@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>利用マニュアル — 宅配会員管理システム</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif; color: #222; line-height: 1.8; background: #fff; }
+  .cover { background: #111; color: #fff; padding: 60px 40px; text-align: center; }
+  .cover h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .cover p { font-size: 15px; color: #aaa; }
+  .cover .version { display: inline-block; background: #333; font-size: 12px; padding: 4px 12px; border-radius: 99px; margin-top: 12px; color: #ccc; }
+  .toc { max-width: 760px; margin: 0 auto; padding: 32px 24px; }
+  .toc h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #555; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+  .toc a { display: block; font-size: 14px; color: #1a56db; padding: 5px 0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .toc-num { color: #aaa; margin-right: 8px; }
+  .container { max-width: 760px; margin: 0 auto; padding: 0 24px 60px; }
+  .chapter { margin-bottom: 48px; }
+  h2.chapter-title { font-size: 20px; font-weight: 700; padding: 16px 20px; background: #111; color: #fff; border-radius: 10px; margin-bottom: 20px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 24px 0 12px; padding-left: 12px; border-left: 3px solid #111; }
+  p { font-size: 14px; margin-bottom: 10px; color: #333; }
+  .step-list { counter-reset: step; list-style: none; padding: 0; }
+  .step-list li { counter-increment: step; display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+  .step-list li::before { content: counter(step); display: inline-flex; background: #111; color: #fff; font-size: 12px; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-list li .step-content { font-size: 14px; flex: 1; }
+  .step-list li .step-content strong { display: block; margin-bottom: 2px; }
+  .note { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #555; margin: 10px 0; }
+  .warn { background: #fff3f3; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #b91c1c; margin: 10px 0; }
+  .success { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #2e7d32; margin: 10px 0; }
+  .info { background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #1e40af; margin: 10px 0; }
+  .screen { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; margin: 12px 0; font-size: 13px; }
+  .screen .screen-title { font-weight: 700; font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+  .btn-sample { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; margin: 3px; }
+  .btn-black { background: #111; color: #fff; }
+  .btn-blue { background: #1a56db; color: #fff; }
+  .btn-white { background: #fff; color: #111; border: 1px solid #ccc; }
+  .btn-green { background: #dcfce7; color: #166534; border: 1px solid #a5d6a7; }
+  .table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  .table th { background: #f5f5f5; padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+  .table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef9c3; color: #854d0e; }
+  .badge-blue { background: #e0e7ff; color: #3730a3; }
+  .receipt-sample { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; font-family: 'Courier New', monospace; font-size: 11px; color: #111; line-height: 1.8; max-width: 240px; margin: 12px auto; }
+  .receipt-center { text-align: center; }
+  .receipt-dash { border: none; border-top: 1px dashed #bbb; margin: 5px 0; }
+  .flow { display: flex; align-items: center; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  .flow-item { background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; }
+  .flow-arrow { color: #aaa; font-size: 18px; }
+  hr { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+  .qa { margin-bottom: 16px; }
+  .qa .q { font-size: 14px; font-weight: 700; color: #1a56db; margin-bottom: 6px; }
+  .qa .q::before { content: "Q. "; }
+  .qa .a { font-size: 14px; color: #333; padding-left: 20px; }
+  .qa .a::before { content: "A. "; font-weight: 700; color: #111; }
+  @media (max-width: 600px) { .cover { padding: 40px 20px; } .cover h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <h1>宅配会員管理システム</h1>
+  <p>利用マニュアル</p>
+  <span class="version">2026年4月 最新版</span>
+</div>
+
+<!-- 目次 -->
+<div class="toc">
+  <h2>目次</h2>
+  <a href="#chapter1"><span class="toc-num">1.</span>システム概要</a>
+  <a href="#chapter2"><span class="toc-num">2.</span>起動方法</a>
+  <a href="#chapter3"><span class="toc-num">3.</span>会員登録・QRコード発行</a>
+  <a href="#chapter4"><span class="toc-num">4.</span>宅配伝票の印刷</a>
+  <a href="#chapter5"><span class="toc-num">5.</span>会員一覧の確認・管理</a>
+  <a href="#chapter6"><span class="toc-num">6.</span>会員情報の編集（スプレッドシート）</a>
+  <a href="#chapter7"><span class="toc-num">7.</span>QRコードの再発行</a>
+  <a href="#chapter8"><span class="toc-num">8.</span>複数枚印刷（複数個口）</a>
+  <a href="#chapter9"><span class="toc-num">9.</span>設定・接続確認</a>
+  <a href="#chapter10"><span class="toc-num">10.</span>よくあるトラブルと対処法</a>
+</div>
+
+<div class="container">
+
+<!-- Chapter 1 -->
+<div class="chapter" id="chapter1">
+  <h2 class="chapter-title">1. システム概要</h2>
+
+  <p>このシステムは宅配業務に特化した会員管理・伝票印刷システムです。スマホ1台でお客様の登録から伝票印刷まで完結します。</p>
+
+  <h3>できること</h3>
+  <table class="table">
+    <tr><th>機能</th><th>説明</th></tr>
+    <tr><td><strong>会員登録</strong></td><td>お客様の氏名・住所・電話番号・備考を登録</td></tr>
+    <tr><td><strong>QRコード発行</strong></td><td>会員カード用のQRコードを印刷</td></tr>
+    <tr><td><strong>QRスキャン</strong></td><td>会員カードのQRを読み取って情報を即座に呼び出し</td></tr>
+    <tr><td><strong>伝票印刷</strong></td><td>住所・氏名・メモ・地図QRコード入りの宅配伝票を印刷</td></tr>
+    <tr><td><strong>複数枚印刷</strong></td><td>2個口など複数枚の伝票を一度に印刷</td></tr>
+    <tr><td><strong>クラウド同期</strong></td><td>Googleスプレッドシートとリアルタイムで同期</td></tr>
+  </table>
+
+  <h3>使用機器</h3>
+  <table class="table">
+    <tr><th>機器</th><th>用途</th></tr>
+    <tr><td>Android スマホ / タブレット（Chrome）</td><td>メイン操作端末</td></tr>
+    <tr><td>EPSON TM-m30III-H</td><td>伝票・QRコード印刷</td></tr>
+    <tr><td>PC（任意）</td><td>Googleスプレッドシートで会員管理</td></tr>
+  </table>
+</div>
+
+<!-- Chapter 2 -->
+<div class="chapter" id="chapter2">
+  <h2 class="chapter-title">2. 起動方法</h2>
+
+  <h3>毎日の起動手順</h3>
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>プリンターの電源を入れる</strong>
+        EPSON TM-m30III-Hの電源ボタンを押す
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>Epson TM Print Assistant を起動する</strong>
+        スマホのアプリ一覧から「Epson TM Print Assistant」を起動し、プリンターが接続されていることを確認する
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>会員管理システムを開く</strong>
+        ホーム画面の「宅配会員管理」アイコンをタップ、または以下のURLをブラウザで開く
+      </div>
+    </li>
+  </ol>
+
+  <div class="screen">
+    <div class="screen-title">起動後の画面</div>
+    <p>起動すると自動的にGoogleスプレッドシートから最新データを読み込みます。</p>
+    <p>画面左上の●が<span style="color:#22c55e;">●緑</span>なら接続OK、<span style="color:#f59e0b;">●黄</span>なら未接続です。</p>
+  </div>
+
+  <div class="note">💡 TM Print Assistantを先に起動しておかないと印刷できません。毎日必ず先に起動してください。</div>
+</div>
+
+<!-- Chapter 3 -->
+<div class="chapter" id="chapter3">
+  <h2 class="chapter-title">3. 会員登録・QRコード発行</h2>
+
+  <h3>新規会員を登録する</h3>
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>「新規登録」タブをタップ</strong>
+        画面上部のタブから「新規登録」を選ぶ
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>会員情報を入力する</strong>
+        以下の項目を入力する
+      </div>
+    </li>
+  </ol>
+
+  <table class="table">
+    <tr><th>項目</th><th>入力内容</th><th>必須</th></tr>
+    <tr><td>姓・名</td><td>お客様の氏名</td><td>✅ 必須</td></tr>
+    <tr><td>電話番号</td><td>連絡先電話番号</td><td>✅ 必須</td></tr>
+    <tr><td>郵便番号</td><td>配達先郵便番号</td><td>任意</td></tr>
+    <tr><td>住所</td><td>配達先住所（<strong>必ず都道府県から入力</strong>）</td><td>任意</td></tr>
+    <tr><td>区分</td><td>通常 / 優先 / 法人</td><td>任意</td></tr>
+    <tr><td>メモ・備考</td><td>置き配場所・注意事項など</td><td>任意</td></tr>
+  </table>
+
+  <div class="warn">⚠️ 住所は必ず「大阪府吹田市〇〇」のように都道府県から入力してください。都道府県がないと地図QRコードが正確に動作しません。</div>
+
+  <ol class="step-list" start="3">
+    <li>
+      <div class="step-content">
+        <strong>「登録してQRコードを発行」をタップ</strong>
+        会員番号が自動採番され、QRコードが表示される
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>「QRコードを印刷する」をタップ</strong>
+        プリンターからQRコードと会員番号が印刷される
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>カード台紙にQRを貼り付ける</strong>
+        印刷されたQRコードを名刺サイズのカード台紙に貼り付けてお客様にお渡しする
+      </div>
+    </li>
+  </ol>
+
+  <div class="success">✅ 登録と同時にGoogleスプレッドシートにも自動保存されます</div>
+
+  <div class="note">💡 会員番号は自動で「MB-0001」「MB-0002」…と採番されます。変更はできません。</div>
+</div>
+
+<!-- Chapter 4 -->
+<div class="chapter" id="chapter4">
+  <h2 class="chapter-title">4. 宅配伝票の印刷</h2>
+
+  <h3>QRコードをスキャンして印刷する</h3>
+
+  <div class="flow">
+    <div class="flow-item">QRスキャン</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">会員情報表示</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">内容確認</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">印刷</div>
+  </div>
+
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>「スキャン」タブをタップ</strong>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>カメラアイコンをタップしてQRをスキャン</strong>
+        会員カードのQRコードにカメラを向けると自動で読み取られる
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>会員情報と印刷プレビューを確認する</strong>
+        氏名・住所・メモが正しいか確認する
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>枚数を設定する（通常は1枚）</strong>
+        「−」「＋」ボタンで枚数を調整する
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>「TM-m30III-H で印刷」をタップ</strong>
+        自動的にTM Print Assistantが起動して印刷される
+      </div>
+    </li>
+  </ol>
+
+  <h3>印刷される伝票の内容</h3>
+  <div class="receipt-sample">
+    <div class="receipt-center" style="font-weight:bold;">宅配伝票</div>
+    <div class="receipt-center" style="font-size:9px;">2026/4/27 11:37</div>
+    <hr class="receipt-dash">
+    <div>会員番号: MB-0001</div>
+    <div style="font-weight:bold;">山田 花子 様</div>
+    <hr class="receipt-dash">
+    <div>TEL: 06-1234-5678</div>
+    <div>〒530-0001</div>
+    <div>住所:</div>
+    <div>大阪府大阪市北区梅田1-1-1</div>
+    <hr class="receipt-dash">
+    <div>配達メモ:</div>
+    <div>玄関前ボックスへ</div>
+    <hr class="receipt-dash">
+    <div class="receipt-center">配達先マップ</div>
+    <div class="receipt-center" style="font-size:9px;">[ 地図QRコード ]</div>
+    <div class="receipt-center" style="font-size:9px;">スキャンでナビ開始</div>
+    <hr class="receipt-dash">
+    <div class="receipt-center" style="font-size:9px;">いつもありがとうございます</div>
+  </div>
+
+  <div class="info">💡 伝票下部の地図QRコードをスマホでスキャンするとGoogleマップが開き、そのままナビを開始できます。</div>
+
+  <h3>会員番号を直接入力して検索する場合</h3>
+  <p>QRカードがない場合は、スキャン画面の入力欄に会員番号（例：MB-0001）を直接入力して「検索」ボタンをタップしてください。</p>
+</div>
+
+<!-- Chapter 5 -->
+<div class="chapter" id="chapter5">
+  <h2 class="chapter-title">5. 会員一覧の確認・管理</h2>
+
+  <h3>会員一覧を見る</h3>
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>「会員一覧」タブをタップ</strong>
+        登録されている全会員が一覧表示される
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>検索欄で絞り込む（任意）</strong>
+        名前・住所・会員番号・電話番号で検索できる
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>会員をタップするとスキャン画面に移動</strong>
+        そのまま伝票印刷ができる
+      </div>
+    </li>
+  </ol>
+
+  <h3>区分について</h3>
+  <table class="table">
+    <tr><th>区分</th><th>用途</th></tr>
+    <tr><td><span class="badge badge-green">通常</span></td><td>一般会員</td></tr>
+    <tr><td><span class="badge badge-yellow">優先</span></td><td>優先配達が必要なお客様</td></tr>
+    <tr><td><span class="badge badge-blue">法人</span></td><td>法人・企業のお客様</td></tr>
+  </table>
+</div>
+
+<!-- Chapter 6 -->
+<div class="chapter" id="chapter6">
+  <h2 class="chapter-title">6. 会員情報の編集（スプレッドシート）</h2>
+
+  <p>住所変更・メモの追記などはPCのGoogleスプレッドシートから直接編集できます。</p>
+
+  <h3>スプレッドシートで編集する</h3>
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>PCでGoogleスプレッドシートを開く</strong>
+        Googleドライブから「会員データ」シートを開く
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>該当の行を直接編集する</strong>
+        住所・電話番号・メモなどを修正する
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>スマホでシステムを再起動する</strong>
+        次回起動時に自動的に最新データが反映される
+      </div>
+    </li>
+  </ol>
+
+  <h3>スプレッドシートの列構成</h3>
+  <table class="table">
+    <tr><th>列</th><th>項目</th><th>注意事項</th></tr>
+    <tr><td>A</td><td>会員番号</td><td>変更しないこと（MB-0001形式）</td></tr>
+    <tr><td>B</td><td>氏名</td><td>姓と名の間にスペース（山田 花子）</td></tr>
+    <tr><td>C</td><td>電話番号</td><td></td></tr>
+    <tr><td>D</td><td>郵便番号</td><td></td></tr>
+    <tr><td>E</td><td>住所</td><td>都道府県から入力</td></tr>
+    <tr><td>F</td><td>区分</td><td>通常 / 優先 / 法人</td></tr>
+    <tr><td>G</td><td>メモ</td><td>置き配場所・注意事項など</td></tr>
+    <tr><td>H</td><td>登録日</td><td>自動入力</td></tr>
+  </table>
+
+  <div class="warn">⚠️ A列の会員番号は絶対に変更しないでください。QRコードと紐付いているため、変更するとQRが読み取れなくなります。</div>
+</div>
+
+<!-- Chapter 7 -->
+<div class="chapter" id="chapter7">
+  <h2 class="chapter-title">7. QRコードの再発行</h2>
+
+  <p>会員カードを紛失した場合などにQRコードを再発行できます。</p>
+
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>「スキャン」タブで会員を呼び出す</strong>
+        会員番号を直接入力して検索する
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>「🔲 QRコードを再発行」ボタンをタップ</strong>
+        会員情報の下にボタンが表示されている
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>「QRコードを印刷する」をタップ</strong>
+        同じ会員番号のQRコードが印刷される
+      </div>
+    </li>
+  </ol>
+
+  <div class="note">💡 再発行されるQRコードは最初に発行したものと全く同じです。古いカードも引き続き使用できます。</div>
+</div>
+
+<!-- Chapter 8 -->
+<div class="chapter" id="chapter8">
+  <h2 class="chapter-title">8. 複数枚印刷（複数個口）</h2>
+
+  <p>2個口・3個口など複数の荷物がある場合、同じ伝票を複数枚まとめて印刷できます。</p>
+
+  <ol class="step-list">
+    <li>
+      <div class="step-content">
+        <strong>通常通り会員をスキャンする</strong>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>印刷プレビューの下の「＋」ボタンで枚数を増やす</strong>
+        「−　1　＋」の＋を押して枚数を設定する（最大10枚）
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <strong>「TM-m30III-H で印刷」をタップ</strong>
+        設定した枚数分まとめて印刷される
+      </div>
+    </li>
+  </ol>
+
+  <div class="note">💡 印刷後は自動的に1枚にリセットされます。</div>
+</div>
+
+<!-- Chapter 9 -->
+<div class="chapter" id="chapter9">
+  <h2 class="chapter-title">9. 設定・接続確認</h2>
+
+  <h3>設定画面を開く</h3>
+  <p>画面右上の「⚙️ 設定」をタップすると設定画面が開きます。</p>
+
+  <table class="table">
+    <tr><th>機能</th><th>説明</th></tr>
+    <tr><td>Apps Script URL入力</td><td>初回のみGoogleスプレッドシートとの接続URLを設定する</td></tr>
+    <tr><td>接続テスト</td><td>スプレッドシートへの接続を確認する</td></tr>
+    <tr><td>☁️ スプレッドシートから読み込む</td><td>手動で最新データを取得する</td></tr>
+    <tr><td>📤 スプレッドシートへ書き出す</td><td>端末内のデータをスプレッドシートに送る</td></tr>
+    <tr><td>端末内のデータをすべて削除</td><td>スマホ内のデータを消去する（スプレッドシートは残る）</td></tr>
+  </table>
+
+  <div class="warn">⚠️「端末内のデータをすべて削除」を押すとスマホ内のデータが消えます。スプレッドシートのデータは消えませんが、操作には注意してください。</div>
+</div>
+
+<!-- Chapter 10 -->
+<div class="chapter" id="chapter10">
+  <h2 class="chapter-title">10. よくあるトラブルと対処法</h2>
+
+  <div class="qa">
+    <p class="q">印刷ボタンを押しても何も起きない</p>
+    <p class="a">Epson TM Print Assistantが起動しているか確認してください。アプリを起動してプリンターと接続してから再度お試しください。</p>
+  </div>
+
+  <div class="qa">
+    <p class="q">QRコードを読み取れない</p>
+    <p class="a">カメラのアクセス許可が必要です。スマホの設定 → アプリ → Chrome → 権限 → カメラ をオンにしてください。また、QRコードが折れ曲がったり汚れている場合は会員番号を直接入力して検索できます。</p>
+  </div>
+
+  <div class="qa">
+    <p class="q">会員データが表示されない</p>
+    <p class="a">インターネット接続を確認してください。オフラインの場合は前回取得したデータが表示されます。設定画面の「☁️ スプレッドシートから読み込む」を手動でタップしてください。</p>
+  </div>
+
+  <div class="qa">
+    <p class="q">地図QRコードを読み取っても正しい場所が出ない</p>
+    <p class="a">住所が都道府県から入力されていない可能性があります。スプレッドシートで住所を「大阪府〇〇市...」のように都道府県から修正してください。</p>
+  </div>
+
+  <div class="qa">
+    <p class="q">プリンターが見つからない（TM Print Assistant）</p>
+    <p class="a">スマホのBluetoothがオンになっているか確認してください。プリンターの電源を入れ直してから再度接続を試みてください。</p>
+  </div>
+
+  <div class="qa">
+    <p class="q">画面左上の●が黄色になっている</p>
+    <p class="a">Googleスプレッドシートと未接続の状態です。設定画面でApps Script URLが正しく設定されているか確認してください。</p>
+  </div>
+
+  <div class="qa">
+    <p class="q">新規登録後「続けて登録する」を押すと前の入力が残っている</p>
+    <p class="a">画面を上にスクロールすると入力欄がリセットされた状態で表示されます。</p>
+  </div>
+
+</div>
+
+</div>
+
+<div style="background:#f5f5f5;padding:20px;text-align:center;font-size:12px;color:#aaa;">
+  宅配会員管理システム 利用マニュアル — 2026年4月
+</div>
+
+</body>
+</html>

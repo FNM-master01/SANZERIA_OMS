@@ -650,29 +650,58 @@ function buildEPosXml(m, dt) {
 }
 
 function doPrint() {
-  // 印刷用にマップQRのcanvas画像を取得
-  const mapQrEl = document.querySelector('#receipt_preview canvas, #receipt_preview img');
-  const mapQrSrc = mapQrEl ? (mapQrEl.tagName === 'CANVAS' ? mapQrEl.toDataURL() : mapQrEl.src) : '';
-  const content = document.getElementById('receipt_preview').innerHTML;
-
-  const printContent = mapQrSrc
-    ? content.replace(/<canvas[^>]*>.*?<\/canvas>/s, `<img src="${mapQrSrc}" style="width:70px;height:70px;" />`)
-             .replace(/<img[^>]*class="[^"]*qrcode[^"]*"[^>]*>/i, `<img src="${mapQrSrc}" style="width:70px;height:70px;" />`)
-    : content;
-
+  if (!currentMember) { alert('会員情報を先に読み込んでください'); return; }
+  const m = currentMember;
+  const now = new Date();
+  const dt = now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+  const binText = printBin > 0 ? `【${printBin}便】 ` : '';
+  const mapUrl = 'https://maps.google.com/?q=' + (m.addr||'');
+  let pages = '';
+  for (let i = 1; i <= printCopies; i++) {
+    const pageNum = printCopies > 1 ? `　${i}／${printCopies}` : '';
+    const qrId = 'print_qr_' + i;
+    pages += `
+    <div class="receipt-page">
+      <div class="r-center r-bold" style="font-size:13px;">◆ 宅配伝票 ◆</div>
+      <div class="r-center" style="font-size:10px;">${dt}</div>
+      <hr class="r-dash">
+      <div style="display:flex;justify-content:space-between;"><span>会員番号</span><span>${m.id}${pageNum}</span></div>
+      <div class="r-bold" style="font-size:14px;">${m.name} 様</div>
+      <hr class="r-dash">
+      <div>【TEL】${m.tel}</div>
+      ${m.zip ? `<div>【〒】${m.zip}</div>` : ''}
+      <div>【住所】${m.addr||'—'}</div>
+      <hr class="r-dash">
+      <div>【配達メモ】</div>
+      <div>${binText}${m.memo||'（なし）'}</div>
+      <hr class="r-dash">
+      <div class="r-center" style="font-size:10px;margin-bottom:3px;">配達先マップ</div>
+      <div class="r-center" id="${qrId}"></div>
+      <div class="r-center" style="font-size:9px;margin-top:2px;">スキャンでナビ開始</div>
+      <hr class="r-dash">
+      <div class="r-center" style="font-size:10px;">いつもありがとうございます</div>
+    </div>`;
+  }
+  const safeMapUrl = mapUrl.replace(/'/g, "\\'");
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>宅配伝票</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
   <style>
-    body { font-family: 'Courier New', monospace; font-size: 11px; width: 52mm; margin: 0 auto; padding: 3mm; color: #000; }
-    .r-center { text-align: center; }
-    .r-row { display: flex; justify-content: space-between; }
-    .r-bold { font-weight: bold; }
+    body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; margin: 0; padding: 0; }
+    .receipt-page { width: 52mm; margin: 0 auto; padding: 3mm; page-break-after: always; }
+    .receipt-page:last-child { page-break-after: avoid; }
+    .r-center { text-align: center; } .r-bold { font-weight: bold; }
     .r-dash { border: none; border-top: 1px dashed #000; margin: 4px 0; }
-    img { display: block; margin: 0 auto; }
-    @media print { body { width: 52mm; } }
+    @media print { body { margin: 0; } }
   </style></head>
-  <body>${printContent}
-  <script>window.onload=function(){ window.print(); }<\/script>
+  <body>${pages}
+  <script>
+    for (let i = 1; i <= ${printCopies}; i++) {
+      const el = document.getElementById('print_qr_' + i);
+      if (el) new QRCode(el, { text: '${safeMapUrl}', width:80, height:80, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
+    }
+    window.onload = function(){ window.print(); };
+  <\/script>
   </body></html>`);
 }
 
